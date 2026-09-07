@@ -3,11 +3,7 @@ import { Product } from '../models/Product';
 import { AppError } from '../utils/errors';
 import { CartOwner } from '../middleware/cart.middleware';
 import { AddCartItemInput, UpdateCartItemInput } from '../schemas/cart.schema';
-
-// Placeholder flat rate — real distance/weight-based shipping cost comes
-// from the ShippingProvider in the Shiprocket phase. This just keeps the
-// cart total meaningful (and non-zero) for now.
-const FLAT_DELIVERY_FEE = 4900;
+import { FLAT_DELIVERY_FEE } from '../config/pricing';
 
 function ownerFilter(owner: CartOwner) {
   return 'userId' in owner ? { userId: owner.userId } : { guestToken: owner.guestToken };

@@ -7,6 +7,8 @@ import { categoryRouter } from './category.routes';
 import { productRouter } from './product.routes';
 import { cartRouter } from './cart.routes';
 import { wishlistRouter } from './wishlist.routes';
+import { addressRouter } from './address.routes';
+import { orderRouter } from './order.routes';
 
 export const v1Router = Router();
 
@@ -18,3 +20,5 @@ v1Router.use('/categories', categoryRouter);
 v1Router.use('/products', productRouter);
 v1Router.use('/cart', cartRouter);
 v1Router.use('/wishlist', wishlistRouter);
+v1Router.use('/addresses', addressRouter);
+v1Router.use('/orders', orderRouter);

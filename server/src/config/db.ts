@@ -12,11 +12,14 @@ export async function connectDatabase(): Promise<void> {
       throw new Error('MONGODB_URI is required in production');
     }
     // Dev convenience: no local Mongo/Docker required to run the app.
-    const { MongoMemoryServer } = await import('mongodb-memory-server');
-    const mem = await MongoMemoryServer.create();
+    // Must be a replica set (even single-node) — MongoDB transactions,
+    // used for order/inventory-reservation atomicity, don't work against
+    // a standalone instance.
+    const { MongoMemoryReplSet } = await import('mongodb-memory-server');
+    const mem = await MongoMemoryReplSet.create({ replSet: { count: 1 } });
     memoryServerHandle = mem;
     uri = mem.getUri();
-    logger.info('No MONGODB_URI set — started in-memory MongoDB for development', { uri });
+    logger.info('No MONGODB_URI set — started in-memory MongoDB replica set for development', { uri });
   }
 
   await mongoose.connect(uri);

@@ -1,11 +1,16 @@
 import mongoose from 'mongoose';
-import { Order, OrderItem } from '../models/Order';
+import { Order, OrderItem, OrderDocument } from '../models/Order';
 import { Product } from '../models/Product';
 import { Cart } from '../models/Cart';
 import { Address } from '../models/Address';
+import { SellerFulfillment } from '../models/SellerFulfillment';
 import { AppError } from '../utils/errors';
 import { generateOrderNumber } from '../utils/orderNumber';
-import { reserveInventoryInSession, releaseInventoryInSession } from './inventoryReservation.service';
+import {
+  reserveInventoryInSession,
+  releaseInventoryInSession,
+  commitInventoryInSession,
+} from './inventoryReservation.service';
 import { getCart } from './cart.service';
 import { FLAT_DELIVERY_FEE } from '../config/pricing';
 import { env } from '../config/env';
@@ -169,5 +174,110 @@ export async function cancelUnpaidOrder(userId: string, orderId: string) {
     await session.endSession();
   }
 
+  return order;
+}
+
+function itemsToReservationList(order: OrderDocument) {
+  return order.items.map((item) => ({
+    productId: item.productId.toString(),
+    variantId: item.variantId?.toString(),
+    quantity: item.quantity,
+  }));
+}
+
+/**
+ * Called only from payment.service after the payment webhook (the source
+ * of truth) confirms success. Idempotent at the order level: if the order
+ * is no longer PAYMENT_PENDING (e.g. a second webhook event for the same
+ * logical payment slipped past PaymentEvent's own dedup), this is a no-op
+ * rather than double-committing inventory or creating duplicate
+ * fulfillments.
+ */
+export async function confirmPayment(orderId: string) {
+  const session = await mongoose.startSession();
+  try {
+    await session.withTransaction(async () => {
+      const order = await Order.findById(orderId).session(session);
+      if (!order || order.orderStatus !== 'PAYMENT_PENDING') {
+        return;
+      }
+
+      await commitInventoryInSession(itemsToReservationList(order), session);
+
+      const itemsBySeller = new Map<string, typeof order.items>();
+      for (const item of order.items) {
+        const key = item.sellerId.toString();
+        if (!itemsBySeller.has(key)) itemsBySeller.set(key, [] as unknown as typeof order.items);
+        itemsBySeller.get(key)!.push(item);
+      }
+
+      const fulfillmentIds: mongoose.Types.ObjectId[] = [];
+      for (const [sellerId, items] of itemsBySeller) {
+        const [fulfillment] = await SellerFulfillment.create(
+          [
+            {
+              orderId: order._id,
+              sellerId,
+              items: items.map((item) => ({
+                productId: item.productId,
+                variantId: item.variantId,
+                productName: item.productName,
+                variantName: item.variantName,
+                sku: item.sku,
+                unitPrice: item.unitPrice,
+                quantity: item.quantity,
+                subtotal: item.subtotal,
+              })),
+              status: 'PENDING',
+              statusHistory: [{ status: 'PENDING', at: new Date() }],
+            },
+          ],
+          { session }
+        );
+        fulfillmentIds.push(fulfillment._id as mongoose.Types.ObjectId);
+      }
+
+      order.paymentStatus = 'SUCCESS';
+      order.orderStatus = 'PAID';
+      order.paidAt = new Date();
+      order.sellerFulfillmentIds = fulfillmentIds;
+      await order.save({ session });
+    });
+  } finally {
+    await session.endSession();
+  }
+}
+
+/**
+ * Called from payment.service when the gateway reports failure, or from
+ * the (future) expiry job when paymentExpiresAt has passed. Idempotent for
+ * the same reason as confirmPayment above.
+ */
+export async function failOrExpireOrder(orderId: string, reason: 'PAYMENT_FAILED' | 'PAYMENT_EXPIRED') {
+  const session = await mongoose.startSession();
+  try {
+    await session.withTransaction(async () => {
+      const order = await Order.findById(orderId).session(session);
+      if (!order || order.orderStatus !== 'PAYMENT_PENDING') {
+        return;
+      }
+
+      await releaseInventoryInSession(itemsToReservationList(order), session);
+
+      order.paymentStatus = 'FAILED';
+      order.orderStatus = reason;
+      if (reason === 'PAYMENT_EXPIRED') order.expiresAt = new Date();
+      await order.save({ session });
+    });
+  } finally {
+    await session.endSession();
+  }
+}
+
+export async function getOrderForPayment(orderId: string) {
+  const order = await Order.findById(orderId);
+  if (!order) {
+    throw AppError.notFound('Order not found', 'ORDER_NOT_FOUND');
+  }
   return order;
 }

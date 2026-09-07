@@ -14,6 +14,10 @@ const envSchema = z.object({
 
   SHIPPING_PROVIDER_MODE: z.enum(['mock', 'real']).default('mock'),
 
+  PAYMENT_PROVIDER_MODE: z.enum(['mock', 'real']).default('mock'),
+  PAYMENT_KEY: z.string().optional().default(''),
+  PAYMENT_SECRET: z.string().optional().default(''),
+
   REDIS_ENABLED: z
     .string()
     .default('false')

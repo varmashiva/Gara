@@ -1,23 +1,33 @@
-import { useAuth } from '@/features/auth/AuthContext';
+import { Link } from 'react-router-dom';
+import { useProducts } from '@/features/products/hooks';
+import { ProductCard } from '@/components/product/ProductCard';
 
 export function HomePage() {
-  const { user } = useAuth();
+  const { data } = useProducts({ page: 1, limit: 4, sort: 'newest' });
 
   return (
     <div>
-      <h1 className="text-3xl font-bold text-brand-700">Fresh, homemade food from local kitchens</h1>
-      <p className="mt-2 text-gray-600">
-        Phase 0 + Phase 1 scaffold is live: TypeScript React + Vite frontend talking to an Express +
-        MongoDB backend with real JWT auth (access + rotating refresh tokens).
-      </p>
-      {user ? (
-        <div className="mt-6 rounded-lg border border-orange-200 bg-white p-4">
-          <p className="font-medium">You're signed in as {user.email}.</p>
-          <p className="text-sm text-gray-500">Role: {user.role}</p>
-        </div>
-      ) : (
-        <div className="mt-6 rounded-lg border border-orange-200 bg-white p-4">
-          <p>Sign in or register to try the auth flow end to end.</p>
+      <div className="rounded-xl bg-gradient-to-br from-brand-500 to-brand-700 p-10 text-white">
+        <h1 className="text-3xl font-bold">Fresh, homemade food from local kitchens</h1>
+        <p className="mt-2 max-w-xl text-brand-50">
+          Discover pickles, sweets, and snacks made by home-based sellers near you.
+        </p>
+        <Link
+          to="/products"
+          className="mt-5 inline-block rounded-md bg-white px-5 py-2.5 font-medium text-brand-700 hover:bg-orange-50"
+        >
+          Browse products
+        </Link>
+      </div>
+
+      {data && data.items.length > 0 && (
+        <div className="mt-10">
+          <h2 className="mb-4 text-xl font-semibold text-gray-900">New arrivals</h2>
+          <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
+            {data.items.map((product) => (
+              <ProductCard key={product._id} product={product} />
+            ))}
+          </div>
         </div>
       )}
     </div>

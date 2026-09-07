@@ -1,8 +1,11 @@
 import { Outlet, Link } from 'react-router-dom';
 import { useAuth } from '@/features/auth/AuthContext';
+import { useCart } from '@/features/cart/hooks';
 
 export function MainLayout() {
   const { user, logout, loading } = useAuth();
+  const { data: cart } = useCart();
+  const itemCount = cart?.items.reduce((sum, item) => sum + item.quantity, 0) ?? 0;
 
   return (
     <div className="min-h-screen">
@@ -12,8 +15,22 @@ export function MainLayout() {
             🍲 Homemade Marketplace
           </Link>
           <div className="flex items-center gap-4 text-sm">
+            <Link to="/products" className="text-gray-700 hover:text-brand-700">
+              Products
+            </Link>
+            <Link to="/cart" className="relative text-gray-700 hover:text-brand-700">
+              Cart
+              {itemCount > 0 && (
+                <span className="absolute -right-3 -top-2 flex h-4 w-4 items-center justify-center rounded-full bg-brand-600 text-[10px] font-medium text-white">
+                  {itemCount}
+                </span>
+              )}
+            </Link>
             {loading ? null : user ? (
               <>
+                <Link to="/orders" className="text-gray-700 hover:text-brand-700">
+                  Orders
+                </Link>
                 <span className="text-gray-600">
                   Hi, {user.firstName} ({user.role})
                 </span>

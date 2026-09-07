@@ -1,0 +1,40 @@
+import { api } from '@/api/axios';
+import { Address, Order } from '@/types/order';
+
+export async function fetchAddresses() {
+  const res = await api.get<{ success: true; data: Address[] }>('/addresses');
+  return res.data.data;
+}
+
+export async function createAddress(payload: Omit<Address, '_id' | 'isDefault'> & { isDefault?: boolean }) {
+  const res = await api.post<{ success: true; data: Address }>('/addresses', payload);
+  return res.data.data;
+}
+
+export async function createOrder(addressId: string) {
+  const res = await api.post<{ success: true; data: Order }>('/orders', { addressId });
+  return res.data.data;
+}
+
+export async function fetchOrders() {
+  const res = await api.get<{ success: true; data: Order[] }>('/orders');
+  return res.data.data;
+}
+
+export async function fetchOrder(id: string) {
+  const res = await api.get<{ success: true; data: Order }>(`/orders/${id}`);
+  return res.data.data;
+}
+
+export async function createPaymentOrder(orderId: string) {
+  const res = await api.post<{ success: true; data: { providerOrderId: string; amount: number; provider: string } }>(
+    '/payments/create-order',
+    { orderId }
+  );
+  return res.data.data;
+}
+
+export async function simulatePaymentComplete(providerOrderId: string, status: 'captured' | 'failed' = 'captured') {
+  const res = await api.post(`/payments/mock/${providerOrderId}/complete`, { status });
+  return res.data.data;
+}

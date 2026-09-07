@@ -1,9 +1,11 @@
 import { Router } from 'express';
 import * as sellerController from '../../controllers/seller.controller';
+import * as productController from '../../controllers/product.controller';
 import { requireAuth } from '../../middleware/auth.middleware';
 import { requireRole } from '../../middleware/role.middleware';
 import { validateBody } from '../../middleware/validation.middleware';
 import { applicationDecisionSchema } from '../../schemas/seller.schema';
+import { productStatusDecisionSchema } from '../../schemas/product.schema';
 import { asyncHandler } from '../../utils/asyncHandler';
 
 export const adminRouter = Router();
@@ -17,3 +19,10 @@ adminRouter.patch(
   asyncHandler(sellerController.decideApplicationHandler)
 );
 adminRouter.patch('/sellers/:id/suspend', asyncHandler(sellerController.suspendSellerHandler));
+
+adminRouter.get('/products', asyncHandler(productController.listForModerationHandler));
+adminRouter.patch(
+  '/products/:id/status',
+  validateBody(productStatusDecisionSchema),
+  asyncHandler(productController.decideStatusHandler)
+);

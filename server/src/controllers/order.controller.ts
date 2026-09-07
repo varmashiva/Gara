@@ -21,3 +21,8 @@ export async function cancelHandler(req: Request, res: Response) {
   const order = await orderService.cancelUnpaidOrder(req.user!.sub, req.params.id);
   return sendSuccess(res, order);
 }
+
+export async function trackingHandler(req: Request, res: Response) {
+  const tracking = await orderService.getOrderTracking(req.user!.sub, req.params.id);
+  return sendSuccess(res, tracking);
+}

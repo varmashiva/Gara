@@ -281,3 +281,52 @@ export async function getOrderForPayment(orderId: string) {
   }
   return order;
 }
+
+/**
+ * Derives the order-level status from all of its SellerFulfillments. Only
+ * runs once the order has left PAYMENT_PENDING — cancellation/payment
+ * failure/expiry are handled elsewhere and never overwritten here.
+ */
+export async function recomputeOrderStatus(orderId: string) {
+  const order = await Order.findById(orderId);
+  if (!order) return;
+  if (!['PAID', 'IN_PROGRESS', 'PARTIALLY_SHIPPED', 'SHIPPED', 'DELIVERED', 'COMPLETED'].includes(order.orderStatus)) {
+    return;
+  }
+
+  const fulfillments = await SellerFulfillment.find({ orderId });
+  if (fulfillments.length === 0) return;
+
+  const active = fulfillments.filter((f) => f.status !== 'CANCELLED' && f.status !== 'FAILED');
+  if (active.length === 0) {
+    // Every seller's slice was cancelled/failed — nothing left to fulfill.
+    order.orderStatus = 'CANCELLED';
+    order.cancelledAt = new Date();
+    await order.save();
+    return;
+  }
+
+  const allDelivered = active.every((f) => f.status === 'DELIVERED');
+  const allShippedOrBeyond = active.every((f) => f.status === 'SHIPPED' || f.status === 'DELIVERED');
+  const someShippedOrBeyond = active.some((f) => f.status === 'SHIPPED' || f.status === 'DELIVERED');
+
+  let next: OrderDocument['orderStatus'];
+  if (allDelivered) next = 'COMPLETED';
+  else if (allShippedOrBeyond) next = 'SHIPPED';
+  else if (someShippedOrBeyond) next = 'PARTIALLY_SHIPPED';
+  else next = 'IN_PROGRESS';
+
+  if (order.orderStatus !== next) {
+    order.orderStatus = next;
+    if (next === 'COMPLETED') order.completedAt = new Date();
+    await order.save();
+  }
+}
+
+export async function getOrderTracking(userId: string, orderId: string) {
+  const order = await getMyOrder(userId, orderId);
+  const fulfillments = await SellerFulfillment.find({ orderId: order._id }).select(
+    'sellerId status items statusHistory'
+  );
+  return { order, fulfillments };
+}

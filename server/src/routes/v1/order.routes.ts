@@ -12,4 +12,5 @@ orderRouter.use(requireAuth());
 orderRouter.post('/', validateBody(createOrderSchema), asyncHandler(orderController.createHandler));
 orderRouter.get('/', asyncHandler(orderController.listHandler));
 orderRouter.get('/:id', asyncHandler(orderController.getHandler));
+orderRouter.get('/:id/tracking', asyncHandler(orderController.trackingHandler));
 orderRouter.post('/:id/cancel', asyncHandler(orderController.cancelHandler));

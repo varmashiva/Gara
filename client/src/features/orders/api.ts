@@ -26,6 +26,20 @@ export async function fetchOrder(id: string) {
   return res.data.data;
 }
 
+export type OrderTrackingFulfillment = {
+  _id: string;
+  sellerId: string;
+  status: string;
+  items: { productName: string; quantity: number }[];
+};
+
+export async function fetchOrderTracking(id: string) {
+  const res = await api.get<{ success: true; data: { order: Order; fulfillments: OrderTrackingFulfillment[] } }>(
+    `/orders/${id}/tracking`
+  );
+  return res.data.data;
+}
+
 export async function createPaymentOrder(orderId: string) {
   const res = await api.post<{ success: true; data: { providerOrderId: string; amount: number; provider: string } }>(
     '/payments/create-order',

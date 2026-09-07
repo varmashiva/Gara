@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { useQueryClient } from '@tanstack/react-query';
-import { useOrder } from '@/features/orders/hooks';
+import { useOrderTracking } from '@/features/orders/hooks';
 import { createPaymentOrder, simulatePaymentComplete } from '@/features/orders/api';
 import { formatPaise } from '@/utils/currency';
 
@@ -18,9 +18,22 @@ const STATUS_LABELS: Record<string, string> = {
   CANCELLED: 'Cancelled',
 };
 
+const FULFILLMENT_LABELS: Record<string, string> = {
+  PENDING: 'Order received',
+  CONFIRMED: 'Confirmed by seller',
+  PROCESSING: 'Being prepared',
+  READY_TO_SHIP: 'Ready to ship',
+  SHIPPED: 'Shipped',
+  DELIVERED: 'Delivered',
+  CANCELLED: 'Cancelled',
+  FAILED: 'Failed',
+};
+
 export function OrderDetailPage() {
   const { id } = useParams<{ id: string }>();
-  const { data: order, isLoading, refetch } = useOrder(id);
+  const { data, isLoading, refetch } = useOrderTracking(id);
+  const order = data?.order;
+  const fulfillments = data?.fulfillments ?? [];
   const queryClient = useQueryClient();
   const [paying, setPaying] = useState(false);
   const [payError, setPayError] = useState<string | null>(null);
@@ -127,9 +140,25 @@ export function OrderDetailPage() {
         </div>
       )}
 
-      {order.orderStatus === 'PAID' && (
-        <div className="rounded-lg border border-green-200 bg-green-50 p-4 text-sm text-green-800">
+      {order.orderStatus === 'PAID' && fulfillments.length > 0 && (
+        <div className="mb-6 rounded-lg border border-green-200 bg-green-50 p-4 text-sm text-green-800">
           Payment confirmed. Your order has been sent to the seller for preparation.
+        </div>
+      )}
+
+      {fulfillments.length > 0 && (
+        <div>
+          <h2 className="mb-2 text-lg font-semibold">Tracking</h2>
+          <ul className="space-y-3">
+            {fulfillments.map((f) => (
+              <li key={f._id} className="rounded-lg border border-gray-100 bg-white p-4 text-sm">
+                <p className="mb-1 font-medium">{FULFILLMENT_LABELS[f.status] ?? f.status}</p>
+                <p className="text-gray-500">
+                  {f.items.map((item) => `${item.productName} × ${item.quantity}`).join(', ')}
+                </p>
+              </li>
+            ))}
+          </ul>
         </div>
       )}
     </div>

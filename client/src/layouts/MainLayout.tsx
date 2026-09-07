@@ -31,6 +31,11 @@ export function MainLayout() {
                 <Link to="/orders" className="text-gray-700 hover:text-brand-700">
                   Orders
                 </Link>
+                {user.role === 'SELLER' && (
+                  <Link to="/seller/fulfillments" className="text-gray-700 hover:text-brand-700">
+                    Seller Dashboard
+                  </Link>
+                )}
                 <span className="text-gray-600">
                   Hi, {user.firstName} ({user.role})
                 </span>

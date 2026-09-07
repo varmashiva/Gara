@@ -24,3 +24,11 @@ export function useOrder(id: string | undefined) {
     enabled: !!id,
   });
 }
+
+export function useOrderTracking(id: string | undefined) {
+  return useQuery({
+    queryKey: ['order-tracking', id],
+    queryFn: () => api.fetchOrderTracking(id!),
+    enabled: !!id,
+  });
+}

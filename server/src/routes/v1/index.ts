@@ -1,8 +1,12 @@
 import { Router } from 'express';
 import { healthRouter } from './health.routes';
 import { authRouter } from './auth.routes';
+import { sellerRouter } from './seller.routes';
+import { adminRouter } from './admin.routes';
 
 export const v1Router = Router();
 
 v1Router.use(healthRouter);
 v1Router.use('/auth', authRouter);
+v1Router.use('/seller', sellerRouter);
+v1Router.use('/admin', adminRouter);

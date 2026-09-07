@@ -2,9 +2,15 @@ import { createApp } from './app';
 import { connectDatabase } from './config/db';
 import { env } from './config/env';
 import { logger } from './utils/logger';
+import { seedDevAdmin } from './config/devSeed';
 
 async function main() {
   await connectDatabase();
+
+  if (env.NODE_ENV === 'development') {
+    await seedDevAdmin();
+  }
+
   const app = createApp();
 
   app.listen(env.PORT, () => {

@@ -1,5 +1,7 @@
 import { Request, Response } from 'express';
 import * as authService from '../services/auth.service';
+import { mergeGuestCartIntoUser } from '../services/cart.service';
+import { GUEST_CART_COOKIE } from '../middleware/cart.middleware';
 import { sendSuccess } from '../utils/response';
 import { AppError } from '../utils/errors';
 
@@ -16,15 +18,26 @@ function setRefreshCookie(res: Response, token: string) {
   });
 }
 
+async function mergeGuestCartIfPresent(req: Request, userId: string) {
+  const guestToken = req.cookies?.[GUEST_CART_COOKIE];
+  if (guestToken) {
+    await mergeGuestCartIntoUser(guestToken, userId);
+  }
+}
+
 export async function registerHandler(req: Request, res: Response) {
   const { accessToken, refreshToken, user } = await authService.register(req.body);
+  await mergeGuestCartIfPresent(req, user.id);
   setRefreshCookie(res, refreshToken);
+  res.clearCookie(GUEST_CART_COOKIE);
   return sendSuccess(res, { user, accessToken }, 201);
 }
 
 export async function loginHandler(req: Request, res: Response) {
   const { accessToken, refreshToken, user } = await authService.login(req.body);
+  await mergeGuestCartIfPresent(req, user.id);
   setRefreshCookie(res, refreshToken);
+  res.clearCookie(GUEST_CART_COOKIE);
   return sendSuccess(res, { user, accessToken });
 }
 

@@ -3,6 +3,13 @@ import { connectDatabase } from './config/db';
 import { env } from './config/env';
 import { logger } from './utils/logger';
 import { seedDevAdmin, seedDevCustomer, seedDevCatalog } from './config/devSeed';
+import { expireStaleOrders } from './jobs/expireOrders.job';
+
+// In-process interval, no Redis/queue required — this is the "keep it simple
+// until Redis is actually enabled" scheduler the design doc calls for.
+// Swap for a BullMQ repeatable job if this ever needs to run across
+// multiple server instances without each one polling independently.
+const ORDER_EXPIRY_CHECK_INTERVAL_MS = 5 * 60 * 1000;
 
 async function main() {
   await connectDatabase();
@@ -12,6 +19,12 @@ async function main() {
     await seedDevCustomer();
     await seedDevCatalog();
   }
+
+  setInterval(() => {
+    expireStaleOrders().catch((err) => {
+      logger.error('Order expiry job failed', { message: err instanceof Error ? err.message : String(err) });
+    });
+  }, ORDER_EXPIRY_CHECK_INTERVAL_MS);
 
   const app = createApp();
 

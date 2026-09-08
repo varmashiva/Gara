@@ -1,4 +1,5 @@
 import { Outlet, Link } from 'react-router-dom';
+import { ChefHat, ShoppingCart } from 'lucide-react';
 import { useAuth } from '@/features/auth/AuthContext';
 import { useCart } from '@/features/cart/hooks';
 import { NotificationBell } from '@/components/layout/NotificationBell';
@@ -12,17 +13,18 @@ export function MainLayout() {
     <div className="min-h-screen">
       <header className="border-b border-orange-100 bg-white">
         <nav className="mx-auto flex max-w-5xl items-center justify-between px-4 py-4">
-          <Link to="/" className="text-lg font-bold text-brand-700">
-            🍲 Homemade Marketplace
+          <Link to="/" className="flex items-center gap-2 text-lg font-bold text-brand-700">
+            <ChefHat size={22} aria-hidden="true" />
+            Homemade Marketplace
           </Link>
           <div className="flex items-center gap-4 text-sm">
             <Link to="/products" className="text-gray-700 hover:text-brand-700">
               Products
             </Link>
-            <Link to="/cart" className="relative text-gray-700 hover:text-brand-700">
-              Cart
+            <Link to="/cart" className="relative flex items-center text-gray-700 hover:text-brand-700">
+              <ShoppingCart size={20} aria-label="Cart" />
               {itemCount > 0 && (
-                <span className="absolute -right-3 -top-2 flex h-4 w-4 items-center justify-center rounded-full bg-brand-600 text-[10px] font-medium text-white">
+                <span className="absolute -right-2 -top-2 flex h-4 w-4 items-center justify-center rounded-full bg-brand-600 text-[10px] font-medium text-white">
                   {itemCount}
                 </span>
               )}

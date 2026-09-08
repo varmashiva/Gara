@@ -4,6 +4,7 @@ import { useProduct } from '@/features/products/hooks';
 import { useAddToCart } from '@/features/cart/hooks';
 import { formatPaise } from '@/utils/currency';
 import { VegBadge } from '@/components/common/VegBadge';
+import { ImagePlaceholder } from '@/components/common/ImagePlaceholder';
 
 export function ProductDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -33,7 +34,7 @@ export function ProductDetailPage() {
         {product.images[0] ? (
           <img src={product.images[0].url} alt={product.images[0].alt ?? product.name} className="h-full w-full object-cover" />
         ) : (
-          <div className="flex h-full items-center justify-center text-6xl">🍽️</div>
+          <ImagePlaceholder />
         )}
       </div>
 

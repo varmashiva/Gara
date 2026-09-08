@@ -2,6 +2,7 @@ import { Link } from 'react-router-dom';
 import { Product } from '@/types/product';
 import { formatPaise } from '@/utils/currency';
 import { VegBadge } from '@/components/common/VegBadge';
+import { ImagePlaceholder } from '@/components/common/ImagePlaceholder';
 
 export function ProductCard({ product }: { product: Product }) {
   const outOfStock = product.inventory.availableStock <= 0;
@@ -19,7 +20,7 @@ export function ProductCard({ product }: { product: Product }) {
             className="h-full w-full object-cover transition group-hover:scale-105"
           />
         ) : (
-          <div className="flex h-full items-center justify-center text-4xl">🍽️</div>
+          <ImagePlaceholder />
         )}
       </div>
       <div className="flex flex-1 flex-col gap-1 p-3">

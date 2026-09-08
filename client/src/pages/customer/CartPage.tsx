@@ -2,6 +2,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useCart, useUpdateCartItem, useRemoveCartItem } from '@/features/cart/hooks';
 import { formatPaise } from '@/utils/currency';
 import { useAuth } from '@/features/auth/AuthContext';
+import { ImagePlaceholder } from '@/components/common/ImagePlaceholder';
 
 export function CartPage() {
   const { data: cart, isLoading } = useCart();
@@ -34,7 +35,7 @@ export function CartPage() {
               {item.image ? (
                 <img src={item.image} alt={item.name} className="h-16 w-16 rounded-md object-cover" />
               ) : (
-                <div className="flex h-16 w-16 items-center justify-center rounded-md bg-orange-50 text-2xl">🍽️</div>
+                <ImagePlaceholder className="h-16 w-16 rounded-md" />
               )}
               <div className="flex-1">
                 <p className="font-medium text-gray-900">{item.name}</p>

@@ -6,6 +6,7 @@ import { z } from 'zod';
 import * as api from '@/features/sellers/productApi';
 import { useCategories } from '@/features/products/hooks';
 import { formatPaise } from '@/utils/currency';
+import { ImagePlaceholder } from '@/components/common/ImagePlaceholder';
 
 const schema = z.object({
   categoryId: z.string().min(1, 'Select a category'),
@@ -125,7 +126,7 @@ export function SellerProductsPage() {
             {p.images[0] ? (
               <img src={p.images[0].url} alt={p.name} className="h-16 w-16 rounded-md object-cover" />
             ) : (
-              <div className="flex h-16 w-16 items-center justify-center rounded-md bg-orange-50 text-2xl">🍽️</div>
+              <ImagePlaceholder className="h-16 w-16 rounded-md" />
             )}
             <div className="flex-1">
               <p className="font-medium">{p.name}</p>

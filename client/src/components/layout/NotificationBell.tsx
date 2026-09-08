@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { Bell } from 'lucide-react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { fetchNotifications, markAllNotificationsRead } from '@/features/notifications/api';
 
@@ -28,7 +29,7 @@ export function NotificationBell() {
         className="relative text-gray-700 hover:text-brand-700"
         aria-label="Notifications"
       >
-        🔔
+        <Bell size={20} />
         {unreadCount > 0 && (
           <span className="absolute -right-2 -top-2 flex h-4 w-4 items-center justify-center rounded-full bg-brand-600 text-[10px] font-medium text-white">
             {unreadCount}

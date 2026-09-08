@@ -6,6 +6,7 @@ import { SellerFulfillment } from '../models/SellerFulfillment';
 import { SellerEarning } from '../models/SellerEarning';
 import { AppError } from '../utils/errors';
 import { initiateRefund } from './refund.service';
+import { notify } from './notification.service';
 
 export async function requestReturn(userId: string, input: { orderId: string; productId: string; reason: string }) {
   const order = await Order.findOne({ _id: input.orderId, customerId: userId });
@@ -80,8 +81,17 @@ export async function decideReturn(
   returnRequest.decidedBy = adminUserId as unknown as typeof returnRequest.decidedBy;
   returnRequest.decisionNotes = notes;
 
+  const order = await Order.findById(returnRequest.orderId);
+  await notify(
+    returnRequest.customerId.toString(),
+    decision === 'APPROVED' ? 'RETURN_APPROVED' : 'RETURN_REJECTED',
+    decision === 'APPROVED' ? 'Your return was approved' : 'Your return was rejected',
+    decision === 'APPROVED'
+      ? `Your return for order ${order?.orderNumber ?? ''} was approved and a refund has been initiated.`
+      : `Your return for order ${order?.orderNumber ?? ''} was rejected.${notes ? ` Notes: ${notes}` : ''}`
+  );
+
   if (decision === 'APPROVED') {
-    const order = await Order.findById(returnRequest.orderId);
     const item = order?.items.find((i) => i.productId.toString() === returnRequest.productId.toString());
     if (order && item) {
       await initiateRefund(order.id, item.subtotal, 'RETURN', returnRequest.id);

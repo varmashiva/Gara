@@ -27,3 +27,8 @@ export async function suspendSellerHandler(req: Request, res: Response) {
   const seller = await sellerService.suspendSeller(req.params.id);
   return sendSuccess(res, seller);
 }
+
+export async function listApprovedSellersHandler(_req: Request, res: Response) {
+  const sellers = await sellerService.listApprovedSellers();
+  return sendSuccess(res, sellers);
+}

@@ -14,6 +14,8 @@ import { SellerEarningsPage } from '@/pages/seller/SellerEarningsPage';
 import { AdminApplicationsPage } from '@/pages/admin/AdminApplicationsPage';
 import { AdminProductsPage } from '@/pages/admin/AdminProductsPage';
 import { AdminReturnsPage } from '@/pages/admin/AdminReturnsPage';
+import { AdminCouponsPage } from '@/pages/admin/AdminCouponsPage';
+import { AdminSettlementsPage } from '@/pages/admin/AdminSettlementsPage';
 import { ProtectedRoute } from './ProtectedRoute';
 import { SellerRoute } from './SellerRoute';
 import { AdminRoute } from './AdminRoute';
@@ -50,6 +52,8 @@ export function AppRoutes() {
           <Route path="applications" element={<AdminApplicationsPage />} />
           <Route path="products" element={<AdminProductsPage />} />
           <Route path="returns" element={<AdminReturnsPage />} />
+          <Route path="coupons" element={<AdminCouponsPage />} />
+          <Route path="settlements" element={<AdminSettlementsPage />} />
         </Route>
       </Route>
     </Routes>

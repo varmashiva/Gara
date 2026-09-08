@@ -14,6 +14,7 @@ import { shipmentRouter } from './shipment.routes';
 import { reviewRouter } from './review.routes';
 import { couponRouter } from './coupon.routes';
 import { returnRouter } from './return.routes';
+import { notificationRouter } from './notification.routes';
 
 export const v1Router = Router();
 
@@ -32,3 +33,4 @@ v1Router.use('/shipments', shipmentRouter);
 v1Router.use('/reviews', reviewRouter);
 v1Router.use('/coupons', couponRouter);
 v1Router.use('/returns', returnRouter);
+v1Router.use('/notifications', notificationRouter);

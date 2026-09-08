@@ -30,6 +30,10 @@ const envSchema = z.object({
 
   PAYMENT_TIMEOUT_MINUTES: z.coerce.number().default(20),
   DEFAULT_COMMISSION_RATE_BPS: z.coerce.number().default(1500),
+
+  EMAIL_PROVIDER_MODE: z.enum(['mock', 'real']).default('mock'),
+  EMAIL_API_KEY: z.string().optional().default(''),
+  EMAIL_FROM: z.string().default('Homemade Marketplace <no-reply@example.com>'),
 });
 
 // Treat empty-string env vars (common in a committed .env.example that a dev

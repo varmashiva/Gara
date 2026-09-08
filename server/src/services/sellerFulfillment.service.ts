@@ -1,8 +1,16 @@
 import { SellerFulfillment, SellerFulfillmentDocument, SellerFulfillmentStatus } from '../models/SellerFulfillment';
+import { Order } from '../models/Order';
 import { getSellerByUserId } from './seller.service';
 import { recomputeOrderStatus } from './order.service';
 import { createEarningForFulfillment } from './earnings.service';
+import { notify } from './notification.service';
 import { AppError } from '../utils/errors';
+
+const CUSTOMER_NOTIFICATION_COPY: Partial<Record<SellerFulfillmentStatus, { type: string; title: string }>> = {
+  SHIPPED: { type: 'ORDER_SHIPPED', title: 'Your order has shipped' },
+  DELIVERED: { type: 'ORDER_DELIVERED', title: 'Your order was delivered' },
+  CANCELLED: { type: 'ORDER_CANCELLED', title: 'Part of your order was cancelled' },
+};
 
 // What a seller can click manually. READY_TO_SHIP has no seller-driven exit
 // — reaching it hands off to Shiprocket (createShipmentForFulfillment), and
@@ -52,6 +60,14 @@ async function pushStatus(fulfillment: SellerFulfillmentDocument, status: Seller
   await recomputeOrderStatus(fulfillment.orderId.toString());
   if (status === 'DELIVERED') {
     await createEarningForFulfillment(fulfillment);
+  }
+
+  const copy = CUSTOMER_NOTIFICATION_COPY[status];
+  if (copy) {
+    const order = await Order.findById(fulfillment.orderId).select('customerId orderNumber');
+    if (order) {
+      await notify(order.customerId.toString(), copy.type, copy.title, `Order ${order.orderNumber}: ${copy.title.toLowerCase()}.`);
+    }
   }
 }
 

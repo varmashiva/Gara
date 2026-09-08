@@ -5,6 +5,7 @@ import { AppError } from '../utils/errors';
 import { slugify } from '../utils/slugify';
 import { env } from '../config/env';
 import { SellerApplicationInput, ApplicationDecisionInput } from '../schemas/seller.schema';
+import { notify } from './notification.service';
 
 async function generateUniqueSlug(storeName: string): Promise<string> {
   const base = slugify(storeName) || 'store';
@@ -117,6 +118,15 @@ export async function decideApplication(
     await User.updateOne({ _id: application.userId }, { role: 'SELLER' });
   }
 
+  await notify(
+    application.userId.toString(),
+    input.decision === 'APPROVED' ? 'SELLER_APPROVED' : 'SELLER_REJECTED',
+    input.decision === 'APPROVED' ? 'Your seller application was approved' : 'Your seller application was rejected',
+    input.decision === 'APPROVED'
+      ? 'Congratulations — you can now list products on the marketplace.'
+      : `Your application was not approved.${input.reviewNotes ? ` Notes: ${input.reviewNotes}` : ''}`
+  );
+
   return { application, seller };
 }
 
@@ -139,4 +149,8 @@ export async function getSellerByUserId(userId: string): Promise<SellerDocument>
     throw AppError.notFound('Seller profile not found', 'SELLER_NOT_FOUND');
   }
   return seller;
+}
+
+export async function listApprovedSellers() {
+  return Seller.find({ status: 'APPROVED', isDeleted: false }).select('storeName storeSlug commissionRate');
 }

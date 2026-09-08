@@ -15,6 +15,12 @@ export function AdminLayout() {
           <Link to="/admin/returns" className="text-gray-700 hover:text-brand-700">
             Returns
           </Link>
+          <Link to="/admin/coupons" className="text-gray-700 hover:text-brand-700">
+            Coupons
+          </Link>
+          <Link to="/admin/settlements" className="text-gray-700 hover:text-brand-700">
+            Settlements
+          </Link>
           <Link to="/" className="text-brand-600 underline">
             Back to marketplace
           </Link>

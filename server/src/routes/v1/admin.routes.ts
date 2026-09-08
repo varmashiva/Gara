@@ -27,6 +27,7 @@ adminRouter.patch(
   asyncHandler(sellerController.decideApplicationHandler)
 );
 adminRouter.patch('/sellers/:id/suspend', asyncHandler(sellerController.suspendSellerHandler));
+adminRouter.get('/sellers', asyncHandler(sellerController.listApprovedSellersHandler));
 
 adminRouter.get('/products', asyncHandler(productController.listForModerationHandler));
 adminRouter.patch(

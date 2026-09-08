@@ -1,7 +1,10 @@
 import { Settlement } from '../models/Settlement';
 import { Payout } from '../models/Payout';
 import { SellerEarning } from '../models/SellerEarning';
+import { Seller } from '../models/Seller';
 import { AppError } from '../utils/errors';
+import { notify } from './notification.service';
+import { formatPaise } from '../utils/formatPaise';
 
 export async function createPayout(settlementId: string) {
   const settlement = await Settlement.findById(settlementId);
@@ -42,6 +45,16 @@ export async function markPayoutStatus(payoutId: string, status: 'PAID' | 'FAILE
   if (status === 'PAID') {
     await SellerEarning.updateMany({ settlementId: payout.settlementId }, { status: 'PAID' });
     await Settlement.updateOne({ _id: payout.settlementId }, { status: 'PAID' });
+
+    const seller = await Seller.findById(payout.sellerId);
+    if (seller) {
+      await notify(
+        seller.userId.toString(),
+        'PAYOUT_COMPLETED',
+        'Payout completed',
+        `A payout of ${formatPaise(payout.amount)} has been sent to your account.`
+      );
+    }
   } else {
     // Failed payout: earnings go back to AVAILABLE so they can be re-batched.
     await SellerEarning.updateMany(

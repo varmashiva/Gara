@@ -13,6 +13,7 @@ import {
 } from './inventoryReservation.service';
 import { getCart } from './cart.service';
 import { consumeCoupon } from './coupon.service';
+import { notify } from './notification.service';
 import { FLAT_DELIVERY_FEE } from '../config/pricing';
 import { env } from '../config/env';
 
@@ -206,6 +207,8 @@ function itemsToReservationList(order: OrderDocument) {
  */
 export async function confirmPayment(orderId: string) {
   const session = await mongoose.startSession();
+  let notifyCustomerId: string | null = null;
+  let notifyOrderNumber = '';
   try {
     await session.withTransaction(async () => {
       const order = await Order.findById(orderId).session(session);
@@ -253,9 +256,21 @@ export async function confirmPayment(orderId: string) {
       order.paidAt = new Date();
       order.sellerFulfillmentIds = fulfillmentIds;
       await order.save({ session });
+
+      notifyCustomerId = order.customerId.toString();
+      notifyOrderNumber = order.orderNumber;
     });
   } finally {
     await session.endSession();
+  }
+
+  if (notifyCustomerId) {
+    await notify(
+      notifyCustomerId,
+      'PAYMENT_SUCCESSFUL',
+      'Payment confirmed',
+      `Your payment for order ${notifyOrderNumber} was successful and it's being prepared.`
+    );
   }
 }
 

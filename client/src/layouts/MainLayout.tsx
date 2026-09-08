@@ -1,6 +1,7 @@
 import { Outlet, Link } from 'react-router-dom';
 import { useAuth } from '@/features/auth/AuthContext';
 import { useCart } from '@/features/cart/hooks';
+import { NotificationBell } from '@/components/layout/NotificationBell';
 
 export function MainLayout() {
   const { user, logout, loading } = useAuth();
@@ -41,6 +42,7 @@ export function MainLayout() {
                     Admin Dashboard
                   </Link>
                 )}
+                <NotificationBell />
                 <span className="text-gray-600">
                   Hi, {user.firstName} ({user.role})
                 </span>

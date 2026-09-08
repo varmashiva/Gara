@@ -36,6 +36,11 @@ export function MainLayout() {
                     Seller Dashboard
                   </Link>
                 )}
+                {user.role === 'ADMIN' && (
+                  <Link to="/admin/applications" className="text-gray-700 hover:text-brand-700">
+                    Admin Dashboard
+                  </Link>
+                )}
                 <span className="text-gray-600">
                   Hi, {user.firstName} ({user.role})
                 </span>

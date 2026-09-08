@@ -10,9 +10,15 @@ import { CheckoutPage } from '@/pages/customer/CheckoutPage';
 import { OrdersPage } from '@/pages/customer/OrdersPage';
 import { OrderDetailPage } from '@/pages/customer/OrderDetailPage';
 import { SellerFulfillmentsPage } from '@/pages/seller/SellerFulfillmentsPage';
+import { SellerEarningsPage } from '@/pages/seller/SellerEarningsPage';
+import { AdminApplicationsPage } from '@/pages/admin/AdminApplicationsPage';
+import { AdminProductsPage } from '@/pages/admin/AdminProductsPage';
+import { AdminReturnsPage } from '@/pages/admin/AdminReturnsPage';
 import { ProtectedRoute } from './ProtectedRoute';
 import { SellerRoute } from './SellerRoute';
+import { AdminRoute } from './AdminRoute';
 import { SellerLayout } from '@/layouts/SellerLayout';
+import { AdminLayout } from '@/layouts/AdminLayout';
 
 export function AppRoutes() {
   return (
@@ -35,6 +41,15 @@ export function AppRoutes() {
       <Route path="/seller" element={<SellerRoute />}>
         <Route element={<SellerLayout />}>
           <Route path="fulfillments" element={<SellerFulfillmentsPage />} />
+          <Route path="earnings" element={<SellerEarningsPage />} />
+        </Route>
+      </Route>
+
+      <Route path="/admin" element={<AdminRoute />}>
+        <Route element={<AdminLayout />}>
+          <Route path="applications" element={<AdminApplicationsPage />} />
+          <Route path="products" element={<AdminProductsPage />} />
+          <Route path="returns" element={<AdminReturnsPage />} />
         </Route>
       </Route>
     </Routes>

@@ -14,6 +14,8 @@ export interface UserDocument extends Document {
   isEmailVerified: boolean;
   status: 'ACTIVE' | 'SUSPENDED';
   googleId?: string;
+  passwordResetTokenHash?: string;
+  passwordResetExpiresAt?: Date;
   isDeleted: boolean;
   deletedAt?: Date;
   deletedBy?: Schema.Types.ObjectId;
@@ -34,6 +36,8 @@ const userSchema = new Schema<UserDocument>(
     isEmailVerified: { type: Boolean, default: false },
     status: { type: String, enum: ['ACTIVE', 'SUSPENDED'], default: 'ACTIVE' },
     googleId: { type: String, index: true, sparse: true, unique: true },
+    passwordResetTokenHash: { type: String, select: false, index: true, sparse: true },
+    passwordResetExpiresAt: { type: Date, select: false },
     isDeleted: { type: Boolean, default: false },
     deletedAt: { type: Date },
     deletedBy: { type: Schema.Types.ObjectId, ref: 'User' },

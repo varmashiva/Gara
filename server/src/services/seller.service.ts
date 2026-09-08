@@ -6,6 +6,7 @@ import { slugify } from '../utils/slugify';
 import { env } from '../config/env';
 import { SellerApplicationInput, ApplicationDecisionInput } from '../schemas/seller.schema';
 import { notify } from './notification.service';
+import { recordAudit } from './audit.service';
 
 async function generateUniqueSlug(storeName: string): Promise<string> {
   const base = slugify(storeName) || 'store';
@@ -126,6 +127,15 @@ export async function decideApplication(
       ? 'Congratulations — you can now list products on the marketplace.'
       : `Your application was not approved.${input.reviewNotes ? ` Notes: ${input.reviewNotes}` : ''}`
   );
+
+  recordAudit({
+    actorId: adminUserId,
+    actorRole: 'ADMIN',
+    action: input.decision === 'APPROVED' ? 'SELLER_APPLICATION_APPROVED' : 'SELLER_APPLICATION_REJECTED',
+    entityType: 'SellerApplication',
+    entityId: application.id,
+    after: { sellerId: seller.id, userId: application.userId.toString() },
+  });
 
   return { application, seller };
 }

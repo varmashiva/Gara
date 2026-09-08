@@ -2,6 +2,7 @@ import { Payment } from '../models/Payment';
 import { PaymentEvent } from '../models/PaymentEvent';
 import { paymentProvider } from '../integrations/payment/paymentProviderFactory';
 import { getOrderForPayment, confirmPayment, failOrExpireOrder } from './order.service';
+import { recordAudit } from './audit.service';
 import { AppError } from '../utils/errors';
 import { env } from '../config/env';
 import { randomUUID } from 'crypto';
@@ -75,6 +76,12 @@ export async function handleWebhook(payload: WebhookInput) {
   });
 
   if (!signatureValid) {
+    recordAudit({
+      action: 'PAYMENT_WEBHOOK_INVALID_SIGNATURE',
+      entityType: 'Payment',
+      entityId: payment.id,
+      after: { providerOrderId: payload.providerOrderId },
+    });
     throw AppError.badRequest('Invalid webhook signature', 'INVALID_WEBHOOK_SIGNATURE');
   }
 
@@ -83,10 +90,12 @@ export async function handleWebhook(payload: WebhookInput) {
     payment.providerPaymentId = payload.providerPaymentId;
     await payment.save();
     await confirmPayment(payment.orderId.toString());
+    recordAudit({ action: 'PAYMENT_CAPTURED', entityType: 'Payment', entityId: payment.id });
   } else if (payload.status === 'failed' && payment.status !== 'FAILED') {
     payment.status = 'FAILED';
     await payment.save();
     await failOrExpireOrder(payment.orderId.toString(), 'PAYMENT_FAILED');
+    recordAudit({ action: 'PAYMENT_FAILED', entityType: 'Payment', entityId: payment.id });
   }
 
   await PaymentEvent.updateOne({ eventId: payload.eventId }, { processed: true });

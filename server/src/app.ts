@@ -8,6 +8,7 @@ import { env } from './config/env';
 import { v1Router } from './routes/v1';
 import { sanitizeRequest } from './middleware/sanitize.middleware';
 import { notFoundHandler, errorHandler } from './middleware/error.middleware';
+import { CSRF_COOKIE, setCsrfCookie } from './middleware/csrf.middleware';
 
 export function createApp() {
   const app = express();
@@ -21,6 +22,13 @@ export function createApp() {
     '/uploads',
     (_req, res, next) => {
       res.setHeader('Cross-Origin-Resource-Policy', 'cross-origin');
+      // Uploaded files are served with their detected content-type but the
+      // browser must never MIME-sniff them into something else (e.g.
+      // treating an uploaded file as HTML/script) — nosniff plus the fact
+      // that we generate the storage filename/extension ourselves (never
+      // the client's original filename) is what makes this directory safe
+      // to serve statically at all.
+      res.setHeader('X-Content-Type-Options', 'nosniff');
       next();
     },
     express.static(path.join(__dirname, '../uploads'))
@@ -34,6 +42,20 @@ export function createApp() {
   app.use(express.json({ limit: '1mb' }));
   app.use(cookieParser());
   app.use(sanitizeRequest);
+
+  // Primes the CSRF double-submit cookie on literally any request that
+  // doesn't already have one — guarantees it exists before the first
+  // user-initiated mutation, since the SPA's own bootstrap call (GET
+  // /auth/me, fired on every page load) always runs first. A double-submit
+  // token can never be validated on the same response that first issues
+  // it, so without this priming step, a brand-new session's very first
+  // mutating request would always fail the CSRF check.
+  app.use((req, res, next) => {
+    if (!req.cookies?.[CSRF_COOKIE]) {
+      setCsrfCookie(res);
+    }
+    next();
+  });
 
   // Note: credential-guessing-sensitive auth endpoints (login/register/password
   // reset) carry their own stricter limiter applied directly on those routes

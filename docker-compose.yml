@@ -1,10 +1,21 @@
+# Secure-by-default base file: neither mongo nor the Node server publish a
+# host port here — only `client` (Nginx) is internet-facing, matching
+# "MongoDB should never be publicly reachable" and "don't expose Node
+# directly". For local development, layer docker-compose.dev.yml on top to
+# get direct port access for debugging:
+#
+#   docker compose -f docker-compose.yml -f docker-compose.dev.yml up
+#
+# For production, run this file alone (plus a real TLS cert mounted into
+# nginx.conf's commented-out 443 block, or TLS terminated at your cloud
+# load balancer in front of the client service):
+#
+#   docker compose up -d
 services:
   mongo:
     image: mongo:7
     restart: unless-stopped
     command: ["--replSet", "rs0", "--bind_ip_all"]
-    ports:
-      - "27017:27017"
     volumes:
       - mongo_data:/data/db
     healthcheck:
@@ -26,8 +37,6 @@ services:
   redis:
     image: redis:7-alpine
     restart: unless-stopped
-    ports:
-      - "6379:6379"
     profiles:
       - with-redis
 
@@ -43,8 +52,6 @@ services:
       - server/.env
     environment:
       - MONGODB_URI=mongodb://mongo:27017/marketplace?replicaSet=rs0
-    ports:
-      - "4000:4000"
 
   client:
     build:

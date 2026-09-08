@@ -11,9 +11,21 @@ export function setAccessToken(token: string | null) {
   accessToken = token;
 }
 
+function readCookie(name: string): string | null {
+  const match = document.cookie.match(new RegExp(`(?:^|; )${name}=([^;]*)`));
+  return match ? decodeURIComponent(match[1]) : null;
+}
+
 api.interceptors.request.use((config) => {
   if (accessToken) {
     config.headers.Authorization = `Bearer ${accessToken}`;
+  }
+  // Harmless to send even when the server doesn't require it (Bearer-
+  // authenticated requests skip the check entirely) — only the cookie-only
+  // endpoints (refresh/logout, guest cart) actually enforce it.
+  const csrfToken = readCookie('csrfToken');
+  if (csrfToken) {
+    config.headers['X-CSRF-Token'] = csrfToken;
   }
   return config;
 });

@@ -5,6 +5,8 @@ import * as settlementController from '../../controllers/settlement.controller';
 import * as reviewController from '../../controllers/review.controller';
 import * as couponController from '../../controllers/coupon.controller';
 import * as returnController from '../../controllers/returnRequest.controller';
+import * as userController from '../../controllers/user.controller';
+import * as auditLogController from '../../controllers/auditLog.controller';
 import { requireAuth } from '../../middleware/auth.middleware';
 import { requireRole } from '../../middleware/role.middleware';
 import { validateBody } from '../../middleware/validation.middleware';
@@ -14,11 +16,21 @@ import { createSettlementSchema, markPayoutStatusSchema } from '../../schemas/se
 import { moderateReviewSchema } from '../../schemas/review.schema';
 import { createCouponSchema, updateCouponSchema } from '../../schemas/coupon.schema';
 import { decideReturnSchema } from '../../schemas/returnRequest.schema';
+import { setUserStatusSchema } from '../../schemas/user.schema';
 import { asyncHandler } from '../../utils/asyncHandler';
 
 export const adminRouter = Router();
 
 adminRouter.use(requireAuth(), requireRole('ADMIN'));
+
+adminRouter.get('/audit-logs', asyncHandler(auditLogController.listHandler));
+
+adminRouter.get('/users', asyncHandler(userController.listHandler));
+adminRouter.patch(
+  '/users/:id/status',
+  validateBody(setUserStatusSchema),
+  asyncHandler(userController.setStatusHandler)
+);
 
 adminRouter.get('/sellers/applications', asyncHandler(sellerController.listApplicationsHandler));
 adminRouter.patch(

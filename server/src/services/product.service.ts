@@ -5,6 +5,7 @@ import { AppError } from '../utils/errors';
 import { slugify } from '../utils/slugify';
 import { getSellerByUserId } from './seller.service';
 import { storageProvider } from '../integrations/storage/storageProviderFactory';
+import { recordAudit } from './audit.service';
 import { CreateProductInput, UpdateProductInput, ProductQueryInput } from '../schemas/product.schema';
 
 const MAX_IMAGES_PER_PRODUCT = 8;
@@ -203,6 +204,7 @@ export async function listForModeration(status?: 'PENDING_REVIEW' | 'APPROVED' |
 }
 
 export async function decideProductStatus(
+  adminUserId: string,
   productId: string,
   input: { decision: 'APPROVED' | 'REJECTED'; reviewNotes?: string }
 ) {
@@ -216,6 +218,15 @@ export async function decideProductStatus(
   product.status = input.decision;
   product.reviewNotes = input.reviewNotes;
   await product.save();
+
+  recordAudit({
+    actorId: adminUserId,
+    actorRole: 'ADMIN',
+    action: input.decision === 'APPROVED' ? 'PRODUCT_APPROVED' : 'PRODUCT_REJECTED',
+    entityType: 'Product',
+    entityId: product.id,
+  });
+
   return product;
 }
 

@@ -4,6 +4,7 @@ import { SellerEarning } from '../models/SellerEarning';
 import { Seller } from '../models/Seller';
 import { AppError } from '../utils/errors';
 import { notify } from './notification.service';
+import { recordAudit } from './audit.service';
 import { formatPaise } from '../utils/formatPaise';
 
 export async function createPayout(settlementId: string) {
@@ -30,7 +31,12 @@ export async function createPayout(settlementId: string) {
  * automated disbursement (design doc §16) — this just records that it
  * happened (or failed) once ops actually moves the money.
  */
-export async function markPayoutStatus(payoutId: string, status: 'PAID' | 'FAILED', failureReason?: string) {
+export async function markPayoutStatus(
+  adminUserId: string,
+  payoutId: string,
+  status: 'PAID' | 'FAILED',
+  failureReason?: string
+) {
   const payout = await Payout.findById(payoutId);
   if (!payout) throw AppError.notFound('Payout not found', 'PAYOUT_NOT_FOUND');
   if (payout.status === 'PAID') {
@@ -41,6 +47,15 @@ export async function markPayoutStatus(payoutId: string, status: 'PAID' | 'FAILE
   payout.completedAt = new Date();
   if (status === 'FAILED') payout.failureReason = failureReason;
   await payout.save();
+
+  recordAudit({
+    actorId: adminUserId,
+    actorRole: 'ADMIN',
+    action: status === 'PAID' ? 'PAYOUT_MARKED_PAID' : 'PAYOUT_MARKED_FAILED',
+    entityType: 'Payout',
+    entityId: payout.id,
+    after: { amount: payout.amount, sellerId: payout.sellerId.toString() },
+  });
 
   if (status === 'PAID') {
     await SellerEarning.updateMany({ settlementId: payout.settlementId }, { status: 'PAID' });

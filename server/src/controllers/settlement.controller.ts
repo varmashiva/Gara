@@ -31,6 +31,11 @@ export async function listPayoutsHandler(req: Request, res: Response) {
 }
 
 export async function markPayoutStatusHandler(req: Request, res: Response) {
-  const payout = await payoutService.markPayoutStatus(req.params.id, req.body.status, req.body.failureReason);
+  const payout = await payoutService.markPayoutStatus(
+    req.user!.sub,
+    req.params.id,
+    req.body.status,
+    req.body.failureReason
+  );
   return sendSuccess(res, payout);
 }

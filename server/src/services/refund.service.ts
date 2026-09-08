@@ -1,6 +1,7 @@
 import { Refund, RefundReason } from '../models/Refund';
 import { Payment } from '../models/Payment';
 import { paymentProvider } from '../integrations/payment/paymentProviderFactory';
+import { recordAudit } from './audit.service';
 import { AppError } from '../utils/errors';
 
 export async function initiateRefund(
@@ -29,6 +30,13 @@ export async function initiateRefund(
 
   payment.status = amount >= payment.amount ? 'REFUNDED' : 'PARTIALLY_REFUNDED';
   await payment.save();
+
+  recordAudit({
+    action: 'REFUND_INITIATED',
+    entityType: 'Refund',
+    entityId: refund.id,
+    after: { orderId, amount, reason },
+  });
 
   return refund;
 }

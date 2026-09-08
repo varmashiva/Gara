@@ -8,6 +8,7 @@ import { shippingProvider } from '../integrations/shipping/shippingProviderFacto
 import { AppError } from '../utils/errors';
 import { env } from '../config/env';
 import { applyExternalStatusUpdate } from './sellerFulfillment.service';
+import { recordAudit } from './audit.service';
 
 const STATUS_MAP: Record<string, 'IN_TRANSIT' | 'DELIVERED' | 'FAILED'> = {
   picked_up: 'IN_TRANSIT',
@@ -145,6 +146,12 @@ export async function handleShipmentWebhook(payload: ShipmentWebhookPayload) {
 
   const signatureValid = shippingProvider.verifyWebhookSignature(JSON.stringify(payload), payload.signature);
   if (!signatureValid) {
+    recordAudit({
+      action: 'SHIPMENT_WEBHOOK_INVALID_SIGNATURE',
+      entityType: 'Shipment',
+      entityId: shipment.id,
+      after: { externalShipmentId: payload.externalShipmentId },
+    });
     throw AppError.badRequest('Invalid webhook signature', 'INVALID_WEBHOOK_SIGNATURE');
   }
 

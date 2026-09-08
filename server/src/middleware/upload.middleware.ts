@@ -1,8 +1,10 @@
 import multer from 'multer';
 import { Request, Response, NextFunction } from 'express';
 import { AppError } from '../utils/errors';
+import { readImageDimensions } from '../utils/imageDimensions';
 
 const MAX_FILE_SIZE_BYTES = 5 * 1024 * 1024; // 5MB
+const MAX_DIMENSION_PX = 6000; // guards against decompression-bomb-style resource exhaustion
 const ALLOWED_MIME_TYPES = new Set(['image/jpeg', 'image/png', 'image/webp']);
 
 // Magic-byte signatures — checked against the actual file bytes, not just
@@ -49,6 +51,12 @@ export function uploadSingleImage(fieldName: string) {
       }
       if (!matchesMagicBytes(req.file.buffer, req.file.mimetype)) {
         return next(AppError.badRequest('File content does not match its declared type', 'INVALID_FILE_CONTENT'));
+      }
+      const dimensions = readImageDimensions(req.file.buffer, req.file.mimetype);
+      if (dimensions && (dimensions.width > MAX_DIMENSION_PX || dimensions.height > MAX_DIMENSION_PX)) {
+        return next(
+          AppError.badRequest(`Image dimensions must not exceed ${MAX_DIMENSION_PX}x${MAX_DIMENSION_PX}px`, 'IMAGE_TOO_LARGE')
+        );
       }
       next();
     });

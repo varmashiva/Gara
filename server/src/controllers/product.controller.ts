@@ -56,7 +56,7 @@ export async function listForModerationHandler(req: Request, res: Response) {
 }
 
 export async function decideStatusHandler(req: Request, res: Response) {
-  const product = await productService.decideProductStatus(req.params.id, req.body);
+  const product = await productService.decideProductStatus(req.user!.sub, req.params.id, req.body);
   return sendSuccess(res, product);
 }
 

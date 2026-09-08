@@ -1,13 +1,18 @@
+import crypto from 'crypto';
 import { User, UserDocument } from '../models/User';
 import { Session } from '../models/Session';
 import { hashPassword, comparePassword } from '../utils/password';
 import { signAccessToken, signRefreshToken, verifyRefreshToken } from '../utils/jwt';
 import { verifyGoogleIdToken } from '../integrations/google/googleAuth';
 import { slugify } from '../utils/slugify';
+import { recordAudit } from './audit.service';
+import { emailProvider } from '../integrations/email/emailProviderFactory';
+import { env } from '../config/env';
 import { AppError } from '../utils/errors';
 import { RegisterInput, LoginInput } from '../schemas/auth.schema';
 
 const REFRESH_TOKEN_TTL_MS = 30 * 24 * 60 * 60 * 1000;
+const PASSWORD_RESET_TTL_MS = 30 * 60 * 1000; // 30 minutes — short-lived by design
 
 function toPublicUser(user: UserDocument) {
   return {
@@ -57,18 +62,21 @@ export async function register(input: RegisterInput) {
   return { user: toPublicUser(user), ...tokens };
 }
 
-export async function login(input: LoginInput) {
+export async function login(input: LoginInput, ip?: string) {
   const user = await User.findOne({ email: input.email, isDeleted: false }).select('+passwordHash');
   if (!user || !user.passwordHash) {
+    recordAudit({ action: 'LOGIN_FAILED', entityType: 'User', after: { email: input.email }, ip });
     throw AppError.unauthorized('Invalid email or password', 'INVALID_CREDENTIALS');
   }
 
   const valid = await comparePassword(input.password, user.passwordHash);
   if (!valid) {
+    recordAudit({ actorId: user.id, action: 'LOGIN_FAILED', entityType: 'User', entityId: user.id, ip });
     throw AppError.unauthorized('Invalid email or password', 'INVALID_CREDENTIALS');
   }
 
   if (user.status === 'SUSPENDED') {
+    recordAudit({ actorId: user.id, action: 'LOGIN_BLOCKED_SUSPENDED', entityType: 'User', entityId: user.id, ip });
     throw AppError.forbidden('This account has been suspended', 'ACCOUNT_SUSPENDED');
   }
 
@@ -114,6 +122,7 @@ export async function loginWithGoogle(idToken: string) {
       existingByEmail.googleId = profile.googleId;
       await existingByEmail.save();
       user = existingByEmail;
+      recordAudit({ actorId: user.id, action: 'GOOGLE_ACCOUNT_LINKED', entityType: 'User', entityId: user.id });
     } else {
       const username = await generateUniqueUsername(profile.email);
       user = await User.create({
@@ -154,6 +163,12 @@ export async function refresh(refreshToken: string) {
   if (session.revokedAt) {
     // Reuse of an already-rotated refresh token: treat as compromise, revoke the whole family.
     await Session.updateMany({ userId: session.userId, revokedAt: null }, { revokedAt: new Date() });
+    recordAudit({
+      actorId: session.userId.toString(),
+      action: 'REFRESH_TOKEN_REUSE_DETECTED',
+      entityType: 'User',
+      entityId: session.userId.toString(),
+    });
     throw AppError.unauthorized('Refresh token reuse detected, all sessions revoked', 'REFRESH_REUSE_DETECTED');
   }
 
@@ -185,4 +200,77 @@ export async function getMe(userId: string) {
     throw AppError.notFound('User not found', 'USER_NOT_FOUND');
   }
   return toPublicUser(user);
+}
+
+/**
+ * Always resolves the same way regardless of whether the email exists —
+ * the controller returns one generic message either way — so this endpoint
+ * can't be used to enumerate registered accounts. The token itself is
+ * random (not derived from anything guessable), stored only as a SHA-256
+ * hash (so a DB read alone can't produce a usable token, same principle as
+ * password hashing), and expires in 30 minutes.
+ */
+export async function requestPasswordReset(email: string): Promise<void> {
+  // passwordHash has select:false on the schema — must opt in explicitly,
+  // or user.passwordHash below would always read as undefined and every
+  // account would look like a Google-only account with nothing to reset.
+  const user = await User.findOne({ email, isDeleted: false }).select('+passwordHash');
+  if (!user || !user.passwordHash) {
+    // No account, or a Google-only account with no password to reset —
+    // silently no-op in both cases; the caller never learns which.
+    return;
+  }
+
+  const rawToken = crypto.randomBytes(32).toString('hex');
+  const tokenHash = crypto.createHash('sha256').update(rawToken).digest('hex');
+
+  user.passwordResetTokenHash = tokenHash;
+  user.passwordResetExpiresAt = new Date(Date.now() + PASSWORD_RESET_TTL_MS);
+  await user.save();
+
+  recordAudit({ actorId: user.id, action: 'PASSWORD_RESET_REQUESTED', entityType: 'User', entityId: user.id });
+
+  const resetLink = `${env.CLIENT_ORIGIN}/reset-password?token=${rawToken}`;
+  await emailProvider
+    .send({
+      to: user.email,
+      subject: 'Reset your password',
+      html: `<p>Click the link below to reset your password. This link expires in 30 minutes and can only be used once.</p><p><a href="${resetLink}">${resetLink}</a></p>`,
+    })
+    .catch(() => {
+      // Email delivery failing shouldn't surface as an error to the caller
+      // (the generic response already doesn't confirm/deny account
+      // existence) — it's logged inside emailProvider's own error paths.
+    });
+}
+
+/**
+ * Single-use: the token hash is cleared the moment it's consumed,
+ * regardless of outcome path, so a captured link can't be replayed even if
+ * the attacker races the legitimate user. Also revokes every existing
+ * session — a password reset should force re-authentication everywhere,
+ * including any device an attacker was already using with a stolen
+ * password.
+ */
+export async function resetPassword(rawToken: string, newPassword: string): Promise<void> {
+  const tokenHash = crypto.createHash('sha256').update(rawToken).digest('hex');
+
+  const user = await User.findOne({
+    passwordResetTokenHash: tokenHash,
+    passwordResetExpiresAt: { $gt: new Date() },
+    isDeleted: false,
+  });
+
+  if (!user) {
+    throw AppError.badRequest('This reset link is invalid or has expired', 'INVALID_RESET_TOKEN');
+  }
+
+  user.passwordHash = await hashPassword(newPassword);
+  user.passwordResetTokenHash = undefined;
+  user.passwordResetExpiresAt = undefined;
+  await user.save();
+
+  await Session.updateMany({ userId: user._id, revokedAt: null }, { revokedAt: new Date() });
+
+  recordAudit({ actorId: user.id, action: 'PASSWORD_RESET_COMPLETED', entityType: 'User', entityId: user.id });
 }

@@ -1,0 +1,15 @@
+# Local-dev-only overlay: adds direct host port access for debugging
+# (connect a Mongo GUI to localhost:27017, curl the API at localhost:4000
+# directly). Compose overlays append list values like `ports` by default —
+# no special merge syntax needed, so this works the same on any Compose
+# version. Never use this file for a production deployment.
+#
+#   docker compose -f docker-compose.yml -f docker-compose.dev.yml up
+services:
+  mongo:
+    ports:
+      - "27017:27017"
+
+  server:
+    ports:
+      - "4000:4000"

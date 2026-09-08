@@ -38,6 +38,8 @@ export function resolveCartOwner() {
         maxAge: 30 * 24 * 60 * 60 * 1000,
       });
     }
+    // The CSRF double-submit cookie is already primed globally (see
+    // app.ts) before this middleware ever runs — nothing to do here.
     req.cartOwner = { guestToken };
     next();
   };

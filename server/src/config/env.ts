@@ -13,6 +13,10 @@ const envSchema = z.object({
   JWT_REFRESH_SECRET: z.string().default('dev-refresh-secret-change-me'),
 
   SHIPPING_PROVIDER_MODE: z.enum(['mock', 'real']).default('mock'),
+  SHIPROCKET_EMAIL: z.string().optional().default(''),
+  SHIPROCKET_PASSWORD: z.string().optional().default(''),
+  SHIPROCKET_API_URL: z.string().default('https://apiv2.shiprocket.in/v1/external'),
+  SHIPROCKET_WEBHOOK_SECRET: z.string().optional().default(''),
 
   PAYMENT_PROVIDER_MODE: z.enum(['mock', 'real']).default('mock'),
   PAYMENT_KEY: z.string().optional().default(''),

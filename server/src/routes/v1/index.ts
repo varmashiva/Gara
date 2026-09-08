@@ -10,6 +10,7 @@ import { wishlistRouter } from './wishlist.routes';
 import { addressRouter } from './address.routes';
 import { orderRouter } from './order.routes';
 import { paymentRouter } from './payment.routes';
+import { shipmentRouter } from './shipment.routes';
 
 export const v1Router = Router();
 
@@ -24,3 +25,4 @@ v1Router.use('/wishlist', wishlistRouter);
 v1Router.use('/addresses', addressRouter);
 v1Router.use('/orders', orderRouter);
 v1Router.use('/payments', paymentRouter);
+v1Router.use('/shipments', shipmentRouter);

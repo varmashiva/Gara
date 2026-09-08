@@ -1,24 +1,33 @@
-import { SellerFulfillment, SellerFulfillmentStatus } from '../models/SellerFulfillment';
+import { SellerFulfillment, SellerFulfillmentDocument, SellerFulfillmentStatus } from '../models/SellerFulfillment';
 import { getSellerByUserId } from './seller.service';
 import { recomputeOrderStatus } from './order.service';
 import { AppError } from '../utils/errors';
 
-const ALLOWED_TRANSITIONS: Record<SellerFulfillmentStatus, SellerFulfillmentStatus[]> = {
+// What a seller can click manually. READY_TO_SHIP has no seller-driven exit
+// — reaching it hands off to Shiprocket (createShipmentForFulfillment), and
+// SHIPPED/DELIVERED from there on are driven by the shipment webhook via
+// applyExternalStatusUpdate below, not a button.
+const SELLER_ALLOWED_TRANSITIONS: Record<SellerFulfillmentStatus, SellerFulfillmentStatus[]> = {
   PENDING: ['CONFIRMED', 'CANCELLED'],
   CONFIRMED: ['PROCESSING', 'CANCELLED'],
   PROCESSING: ['READY_TO_SHIP', 'FAILED'],
-  READY_TO_SHIP: ['SHIPPED'],
-  SHIPPED: ['DELIVERED'],
+  READY_TO_SHIP: [],
+  SHIPPED: [],
   DELIVERED: [],
   CANCELLED: [],
   FAILED: [],
+};
+
+const SYSTEM_ALLOWED_TRANSITIONS: Partial<Record<SellerFulfillmentStatus, SellerFulfillmentStatus[]>> = {
+  READY_TO_SHIP: ['SHIPPED'],
+  SHIPPED: ['DELIVERED'],
 };
 
 export async function listMyFulfillments(userId: string, status?: SellerFulfillmentStatus) {
   const seller = await getSellerByUserId(userId);
   const filter: Record<string, unknown> = { sellerId: seller._id };
   if (status) filter.status = status;
-  return SellerFulfillment.find(filter).sort({ createdAt: -1 });
+  return SellerFulfillment.find(filter).populate('shipmentId').sort({ createdAt: -1 });
 }
 
 async function findOwnedFulfillment(userId: string, fulfillmentId: string) {
@@ -31,7 +40,15 @@ async function findOwnedFulfillment(userId: string, fulfillmentId: string) {
 }
 
 export async function getMyFulfillment(userId: string, fulfillmentId: string) {
-  return findOwnedFulfillment(userId, fulfillmentId);
+  const fulfillment = await findOwnedFulfillment(userId, fulfillmentId);
+  return fulfillment.populate('shipmentId');
+}
+
+async function pushStatus(fulfillment: SellerFulfillmentDocument, status: SellerFulfillmentStatus) {
+  fulfillment.status = status;
+  fulfillment.statusHistory.push({ status, at: new Date() });
+  await fulfillment.save();
+  await recomputeOrderStatus(fulfillment.orderId.toString());
 }
 
 export async function updateFulfillmentStatus(
@@ -41,7 +58,7 @@ export async function updateFulfillmentStatus(
 ) {
   const fulfillment = await findOwnedFulfillment(userId, fulfillmentId);
 
-  const allowed = ALLOWED_TRANSITIONS[fulfillment.status];
+  const allowed = SELLER_ALLOWED_TRANSITIONS[fulfillment.status];
   if (!allowed.includes(nextStatus)) {
     throw AppError.conflict(
       `Cannot move fulfillment from ${fulfillment.status} to ${nextStatus}`,
@@ -49,11 +66,27 @@ export async function updateFulfillmentStatus(
     );
   }
 
-  fulfillment.status = nextStatus;
-  fulfillment.statusHistory.push({ status: nextStatus, at: new Date() });
-  await fulfillment.save();
+  if (nextStatus === 'READY_TO_SHIP') {
+    // Lazy import to avoid a circular import at module-load time
+    // (shipping.service imports applyExternalStatusUpdate from this file).
+    const { createShipmentForFulfillment } = await import('./shipping.service');
+    await createShipmentForFulfillment(fulfillment);
+  }
 
-  await recomputeOrderStatus(fulfillment.orderId.toString());
-
+  await pushStatus(fulfillment, nextStatus);
   return fulfillment;
+}
+
+/**
+ * Webhook-driven transition (shipment status events) — no user/ownership
+ * context, since it's the courier's system calling us, not the seller.
+ */
+export async function applyExternalStatusUpdate(fulfillmentId: string, nextStatus: SellerFulfillmentStatus) {
+  const fulfillment = await SellerFulfillment.findById(fulfillmentId);
+  if (!fulfillment) return;
+
+  const allowed = SYSTEM_ALLOWED_TRANSITIONS[fulfillment.status] ?? [];
+  if (!allowed.includes(nextStatus)) return; // stale/out-of-order event — ignore rather than throw
+
+  await pushStatus(fulfillment, nextStatus);
 }

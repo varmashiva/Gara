@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { fetchMyFulfillments, updateFulfillmentStatus } from './fulfillmentApi';
+import { fetchMyFulfillments, updateFulfillmentStatus, simulateCourierEvent } from './fulfillmentApi';
 import { FulfillmentStatus } from '@/types/fulfillment';
 
 const KEY = ['seller', 'fulfillments'];
@@ -12,6 +12,20 @@ export function useUpdateFulfillmentStatus() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: ({ id, status }: { id: string; status: FulfillmentStatus }) => updateFulfillmentStatus(id, status),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: KEY }),
+  });
+}
+
+export function useSimulateCourierEvent() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({
+      externalShipmentId,
+      status,
+    }: {
+      externalShipmentId: string;
+      status: 'picked_up' | 'in_transit' | 'delivered' | 'failed';
+    }) => simulateCourierEvent(externalShipmentId, status),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: KEY }),
   });
 }

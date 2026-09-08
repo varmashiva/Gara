@@ -1,4 +1,4 @@
-import { useMyFulfillments, useUpdateFulfillmentStatus } from '@/features/sellers/fulfillmentHooks';
+import { useMyFulfillments, useUpdateFulfillmentStatus, useSimulateCourierEvent } from '@/features/sellers/fulfillmentHooks';
 import { formatPaise } from '@/utils/currency';
 import { NEXT_STATUS } from '@/types/fulfillment';
 
@@ -16,6 +16,7 @@ const STATUS_STYLES: Record<string, string> = {
 export function SellerFulfillmentsPage() {
   const { data: fulfillments, isLoading } = useMyFulfillments();
   const updateStatus = useUpdateFulfillmentStatus();
+  const simulateCourier = useSimulateCourierEvent();
 
   if (isLoading) return <p className="text-gray-500">Loading...</p>;
   if (!fulfillments || fulfillments.length === 0) {
@@ -27,6 +28,7 @@ export function SellerFulfillmentsPage() {
       {fulfillments.map((f) => {
         const total = f.items.reduce((sum, item) => sum + item.subtotal, 0);
         const nextOptions = NEXT_STATUS[f.status] ?? [];
+        const shipment = f.shipmentId;
         return (
           <div key={f._id} className="rounded-lg border border-gray-100 bg-white p-4">
             <div className="mb-2 flex items-center justify-between">
@@ -46,6 +48,38 @@ export function SellerFulfillmentsPage() {
                 </li>
               ))}
             </ul>
+
+            {shipment && (
+              <div className="mb-3 rounded-md bg-orange-50 p-3 text-sm">
+                <p>
+                  <span className="font-medium">{shipment.courierName ?? 'Courier'}</span> · AWB{' '}
+                  {shipment.awbCode ?? 'pending'} · {shipment.status.replace(/_/g, ' ')}
+                </p>
+                {shipment.status !== 'DELIVERED' && shipment.status !== 'FAILED' && (
+                  <div className="mt-2 flex gap-2">
+                    <button
+                      onClick={() =>
+                        simulateCourier.mutate({ externalShipmentId: shipment.externalShipmentId, status: 'picked_up' })
+                      }
+                      disabled={simulateCourier.isPending}
+                      className="rounded-md border border-brand-600 px-3 py-1 text-xs font-medium text-brand-700 hover:bg-brand-50 disabled:opacity-50"
+                    >
+                      Simulate courier: picked up
+                    </button>
+                    <button
+                      onClick={() =>
+                        simulateCourier.mutate({ externalShipmentId: shipment.externalShipmentId, status: 'delivered' })
+                      }
+                      disabled={simulateCourier.isPending}
+                      className="rounded-md border border-green-600 px-3 py-1 text-xs font-medium text-green-700 hover:bg-green-50 disabled:opacity-50"
+                    >
+                      Simulate courier: delivered
+                    </button>
+                  </div>
+                )}
+              </div>
+            )}
+
             <div className="flex items-center justify-between">
               <span className="font-medium">{formatPaise(total)}</span>
               <div className="flex gap-2">
@@ -61,6 +95,11 @@ export function SellerFulfillmentsPage() {
                 ))}
               </div>
             </div>
+            {updateStatus.isError && (
+              <p className="mt-2 text-sm text-red-600">
+                {(updateStatus.error as any)?.response?.data?.message ?? 'Could not update status.'}
+              </p>
+            )}
           </div>
         );
       })}

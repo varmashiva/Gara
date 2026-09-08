@@ -3,6 +3,7 @@ import * as sellerController from '../../controllers/seller.controller';
 import * as productController from '../../controllers/product.controller';
 import * as settlementController from '../../controllers/settlement.controller';
 import * as reviewController from '../../controllers/review.controller';
+import * as couponController from '../../controllers/coupon.controller';
 import { requireAuth } from '../../middleware/auth.middleware';
 import { requireRole } from '../../middleware/role.middleware';
 import { validateBody } from '../../middleware/validation.middleware';
@@ -10,6 +11,7 @@ import { applicationDecisionSchema } from '../../schemas/seller.schema';
 import { productStatusDecisionSchema } from '../../schemas/product.schema';
 import { createSettlementSchema, markPayoutStatusSchema } from '../../schemas/settlement.schema';
 import { moderateReviewSchema } from '../../schemas/review.schema';
+import { createCouponSchema, updateCouponSchema } from '../../schemas/coupon.schema';
 import { asyncHandler } from '../../utils/asyncHandler';
 
 export const adminRouter = Router();
@@ -46,6 +48,10 @@ adminRouter.patch(
   validateBody(moderateReviewSchema),
   asyncHandler(reviewController.moderateHandler)
 );
+
+adminRouter.get('/coupons', asyncHandler(couponController.listHandler));
+adminRouter.post('/coupons', validateBody(createCouponSchema), asyncHandler(couponController.createHandler));
+adminRouter.patch('/coupons/:id', validateBody(updateCouponSchema), asyncHandler(couponController.updateHandler));
 
 adminRouter.get('/payouts', asyncHandler(settlementController.listPayoutsHandler));
 adminRouter.patch(

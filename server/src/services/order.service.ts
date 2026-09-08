@@ -12,6 +12,7 @@ import {
   commitInventoryInSession,
 } from './inventoryReservation.service';
 import { getCart } from './cart.service';
+import { consumeCoupon } from './coupon.service';
 import { FLAT_DELIVERY_FEE } from '../config/pricing';
 import { env } from '../config/env';
 
@@ -22,7 +23,7 @@ import { env } from '../config/env';
  * does, so a mid-checkout failure can never leave stock reserved for an
  * order that was never created.
  */
-export async function createOrder(userId: string, addressId: string) {
+export async function createOrder(userId: string, addressId: string, couponCode?: string) {
   const cartView = await getCart({ userId });
   if (cartView.items.length === 0) {
     throw AppError.badRequest('Your cart is empty', 'CART_EMPTY');
@@ -92,7 +93,6 @@ export async function createOrder(userId: string, addressId: string) {
 
       const subtotal = orderItems.reduce((sum, item) => sum + item.subtotal, 0);
       const deliveryFee = FLAT_DELIVERY_FEE;
-      const grandTotal = subtotal + deliveryFee;
 
       const [created] = await Order.create(
         [
@@ -113,7 +113,7 @@ export async function createOrder(userId: string, addressId: string) {
             subtotal,
             discountTotal: 0,
             deliveryFee,
-            grandTotal,
+            grandTotal: subtotal + deliveryFee,
             paymentStatus: 'PENDING',
             orderStatus: 'PAYMENT_PENDING',
             paymentExpiresAt: new Date(Date.now() + env.PAYMENT_TIMEOUT_MINUTES * 60 * 1000),
@@ -122,6 +122,17 @@ export async function createOrder(userId: string, addressId: string) {
         { session }
       );
       order = created;
+
+      if (couponCode) {
+        // Runs after the order exists (CouponUsage references orderId) but
+        // still inside the same transaction — if the coupon is invalid or
+        // over its limit, everything above (reservation, order write) rolls
+        // back too, so an order is never left half-discounted.
+        const { discount } = await consumeCoupon(couponCode, userId, created._id as mongoose.Types.ObjectId, subtotal, session);
+        created.discountTotal = discount;
+        created.grandTotal = subtotal - discount + deliveryFee;
+        await created.save({ session });
+      }
 
       await Cart.updateOne({ userId }, { items: [] }, { session });
     });

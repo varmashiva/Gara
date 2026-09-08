@@ -3,7 +3,7 @@ import * as orderService from '../services/order.service';
 import { sendSuccess } from '../utils/response';
 
 export async function createHandler(req: Request, res: Response) {
-  const order = await orderService.createOrder(req.user!.sub, req.body.addressId);
+  const order = await orderService.createOrder(req.user!.sub, req.body.addressId, req.body.couponCode);
   return sendSuccess(res, order, 201);
 }
 

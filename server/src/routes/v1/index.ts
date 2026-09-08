@@ -12,6 +12,7 @@ import { orderRouter } from './order.routes';
 import { paymentRouter } from './payment.routes';
 import { shipmentRouter } from './shipment.routes';
 import { reviewRouter } from './review.routes';
+import { couponRouter } from './coupon.routes';
 
 export const v1Router = Router();
 
@@ -28,3 +29,4 @@ v1Router.use('/orders', orderRouter);
 v1Router.use('/payments', paymentRouter);
 v1Router.use('/shipments', shipmentRouter);
 v1Router.use('/reviews', reviewRouter);
+v1Router.use('/coupons', couponRouter);

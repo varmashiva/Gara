@@ -10,6 +10,7 @@ import { validateBody } from '../../middleware/validation.middleware';
 import { sellerApplicationSchema, pickupLocationSchema, pickupLocationUpdateSchema } from '../../schemas/seller.schema';
 import { createProductSchema, updateProductSchema } from '../../schemas/product.schema';
 import { updateFulfillmentStatusSchema } from '../../schemas/fulfillment.schema';
+import { uploadSingleImage } from '../../middleware/upload.middleware';
 import { asyncHandler } from '../../utils/asyncHandler';
 
 export const sellerRouter = Router();
@@ -63,6 +64,12 @@ sellerRouter.post('/products/:id/submit', asyncHandler(productController.submitF
 sellerRouter.post('/products/:id/deactivate', asyncHandler(productController.deactivateHandler));
 sellerRouter.post('/products/:id/reactivate', asyncHandler(productController.reactivateHandler));
 sellerRouter.delete('/products/:id', asyncHandler(productController.deleteHandler));
+sellerRouter.post(
+  '/products/:id/images',
+  uploadSingleImage('image'),
+  asyncHandler(productController.addImageHandler)
+);
+sellerRouter.delete('/products/:id/images/:publicId', asyncHandler(productController.removeImageHandler));
 
 sellerRouter.use('/fulfillments', requireAuth(), requireRole('SELLER'));
 sellerRouter.get('/fulfillments', asyncHandler(fulfillmentController.listMineHandler));

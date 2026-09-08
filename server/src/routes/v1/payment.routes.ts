@@ -16,7 +16,11 @@ paymentRouter.post(
 
 // No requireAuth() — this is the gateway calling us, not a logged-in user.
 // Trust is established by signature verification inside handleWebhook, not
-// by a session.
+// by a session. This contract (JSON body with an explicit `signature`
+// field) matches MockPaymentProvider for local dev/test — see the detailed
+// caveat atop RazorpayPaymentProvider.ts before pointing this at a real
+// Razorpay account; its actual webhook delivery needs raw-body capture and
+// a different signature scheme entirely, not implemented here.
 paymentRouter.post('/webhook', validateBody(webhookSchema), asyncHandler(paymentController.webhookHandler));
 
 // Dev/test only — simulateGatewayWebhook itself refuses to run outside

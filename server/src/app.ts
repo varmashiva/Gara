@@ -1,4 +1,5 @@
 import express from 'express';
+import path from 'path';
 import helmet from 'helmet';
 import cors from 'cors';
 import cookieParser from 'cookie-parser';
@@ -12,6 +13,18 @@ export function createApp() {
   const app = express();
 
   app.use(helmet());
+  // MockStorageProvider's local uploads dir — served with a relaxed CORP so
+  // the frontend (a different origin in dev) can load these as <img> src.
+  // Only this static path gets the relaxation; every other response keeps
+  // helmet's default same-origin policy.
+  app.use(
+    '/uploads',
+    (_req, res, next) => {
+      res.setHeader('Cross-Origin-Resource-Policy', 'cross-origin');
+      next();
+    },
+    express.static(path.join(__dirname, '../uploads'))
+  );
   app.use(
     cors({
       origin: env.CLIENT_ORIGIN,

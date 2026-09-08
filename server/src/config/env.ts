@@ -34,6 +34,12 @@ const envSchema = z.object({
   EMAIL_PROVIDER_MODE: z.enum(['mock', 'real']).default('mock'),
   EMAIL_API_KEY: z.string().optional().default(''),
   EMAIL_FROM: z.string().default('Homemade Marketplace <no-reply@example.com>'),
+
+  STORAGE_PROVIDER_MODE: z.enum(['mock', 'real']).default('mock'),
+  PUBLIC_SERVER_URL: z.string().default('http://localhost:4000'),
+  CLOUDINARY_CLOUD_NAME: z.string().optional().default(''),
+  CLOUDINARY_API_KEY: z.string().optional().default(''),
+  CLOUDINARY_API_SECRET: z.string().optional().default(''),
 });
 
 // Treat empty-string env vars (common in a committed .env.example that a dev

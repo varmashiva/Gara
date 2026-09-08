@@ -11,6 +11,7 @@ import { OrdersPage } from '@/pages/customer/OrdersPage';
 import { OrderDetailPage } from '@/pages/customer/OrderDetailPage';
 import { SellerFulfillmentsPage } from '@/pages/seller/SellerFulfillmentsPage';
 import { SellerEarningsPage } from '@/pages/seller/SellerEarningsPage';
+import { SellerProductsPage } from '@/pages/seller/SellerProductsPage';
 import { AdminApplicationsPage } from '@/pages/admin/AdminApplicationsPage';
 import { AdminProductsPage } from '@/pages/admin/AdminProductsPage';
 import { AdminReturnsPage } from '@/pages/admin/AdminReturnsPage';
@@ -42,6 +43,7 @@ export function AppRoutes() {
 
       <Route path="/seller" element={<SellerRoute />}>
         <Route element={<SellerLayout />}>
+          <Route path="products" element={<SellerProductsPage />} />
           <Route path="fulfillments" element={<SellerFulfillmentsPage />} />
           <Route path="earnings" element={<SellerEarningsPage />} />
         </Route>

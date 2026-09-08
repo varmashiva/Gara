@@ -59,3 +59,13 @@ export async function decideStatusHandler(req: Request, res: Response) {
   const product = await productService.decideProductStatus(req.params.id, req.body);
   return sendSuccess(res, product);
 }
+
+export async function addImageHandler(req: Request, res: Response) {
+  const product = await productService.addProductImage(req.user!.sub, req.params.id, req.file!);
+  return sendSuccess(res, product, 201);
+}
+
+export async function removeImageHandler(req: Request, res: Response) {
+  const product = await productService.removeProductImage(req.user!.sub, req.params.id, req.params.publicId);
+  return sendSuccess(res, product);
+}

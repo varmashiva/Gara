@@ -4,7 +4,10 @@ import { Category } from '../models/Category';
 import { AppError } from '../utils/errors';
 import { slugify } from '../utils/slugify';
 import { getSellerByUserId } from './seller.service';
+import { storageProvider } from '../integrations/storage/storageProviderFactory';
 import { CreateProductInput, UpdateProductInput, ProductQueryInput } from '../schemas/product.schema';
+
+const MAX_IMAGES_PER_PRODUCT = 8;
 
 async function generateUniqueProductSlug(name: string): Promise<string> {
   const base = slugify(name) || 'product';
@@ -212,6 +215,36 @@ export async function decideProductStatus(
   }
   product.status = input.decision;
   product.reviewNotes = input.reviewNotes;
+  await product.save();
+  return product;
+}
+
+export async function addProductImage(userId: string, productId: string, file: Express.Multer.File) {
+  const product = await findOwnedProduct(userId, productId);
+  if (product.images.length >= MAX_IMAGES_PER_PRODUCT) {
+    throw AppError.badRequest(`A product can have at most ${MAX_IMAGES_PER_PRODUCT} images`, 'TOO_MANY_IMAGES');
+  }
+
+  const { url, publicId } = await storageProvider.upload({
+    buffer: file.buffer,
+    mimeType: file.mimetype,
+    folder: `products/${product.id}`,
+  });
+
+  product.images.push({ url, publicId, order: product.images.length });
+  await product.save();
+  return product;
+}
+
+export async function removeProductImage(userId: string, productId: string, publicId: string) {
+  const product = await findOwnedProduct(userId, productId);
+  const index = product.images.findIndex((img) => img.publicId === publicId);
+  if (index === -1) {
+    throw AppError.notFound('Image not found on this product', 'IMAGE_NOT_FOUND');
+  }
+
+  await storageProvider.delete(publicId);
+  product.images.splice(index, 1);
   await product.save();
   return product;
 }

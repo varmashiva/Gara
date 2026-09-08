@@ -3,6 +3,7 @@ import * as sellerController from '../../controllers/seller.controller';
 import * as pickupLocationController from '../../controllers/pickupLocation.controller';
 import * as productController from '../../controllers/product.controller';
 import * as fulfillmentController from '../../controllers/fulfillment.controller';
+import * as earningsController from '../../controllers/earnings.controller';
 import { requireAuth } from '../../middleware/auth.middleware';
 import { requireRole } from '../../middleware/role.middleware';
 import { validateBody } from '../../middleware/validation.middleware';
@@ -70,4 +71,18 @@ sellerRouter.patch(
   '/fulfillments/:id/status',
   validateBody(updateFulfillmentStatusSchema),
   asyncHandler(fulfillmentController.updateStatusHandler)
+);
+
+sellerRouter.get('/earnings', requireAuth(), requireRole('SELLER'), asyncHandler(earningsController.listMineHandler));
+sellerRouter.get(
+  '/earnings/summary',
+  requireAuth(),
+  requireRole('SELLER'),
+  asyncHandler(earningsController.summaryHandler)
+);
+sellerRouter.get(
+  '/settlements',
+  requireAuth(),
+  requireRole('SELLER'),
+  asyncHandler(earningsController.listMySettlementsHandler)
 );

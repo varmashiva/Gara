@@ -1,6 +1,7 @@
 import { SellerFulfillment, SellerFulfillmentDocument, SellerFulfillmentStatus } from '../models/SellerFulfillment';
 import { getSellerByUserId } from './seller.service';
 import { recomputeOrderStatus } from './order.service';
+import { createEarningForFulfillment } from './earnings.service';
 import { AppError } from '../utils/errors';
 
 // What a seller can click manually. READY_TO_SHIP has no seller-driven exit
@@ -49,6 +50,9 @@ async function pushStatus(fulfillment: SellerFulfillmentDocument, status: Seller
   fulfillment.statusHistory.push({ status, at: new Date() });
   await fulfillment.save();
   await recomputeOrderStatus(fulfillment.orderId.toString());
+  if (status === 'DELIVERED') {
+    await createEarningForFulfillment(fulfillment);
+  }
 }
 
 export async function updateFulfillmentStatus(

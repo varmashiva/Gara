@@ -41,6 +41,14 @@ export async function loginHandler(req: Request, res: Response) {
   return sendSuccess(res, { user, accessToken });
 }
 
+export async function googleLoginHandler(req: Request, res: Response) {
+  const { accessToken, refreshToken, user } = await authService.loginWithGoogle(req.body.idToken);
+  await mergeGuestCartIfPresent(req, user.id);
+  setRefreshCookie(res, refreshToken);
+  res.clearCookie(GUEST_CART_COOKIE);
+  return sendSuccess(res, { user, accessToken });
+}
+
 export async function refreshHandler(req: Request, res: Response) {
   const token = req.cookies?.[REFRESH_COOKIE];
   if (!token) throw AppError.unauthorized('No refresh token provided', 'NO_REFRESH_TOKEN');

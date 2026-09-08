@@ -1,6 +1,6 @@
 import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 import { setAccessToken } from '@/api/axios';
-import { loginRequest, logoutRequest, meRequest, registerRequest, PublicUser } from '@/api/endpoints';
+import { loginRequest, logoutRequest, meRequest, registerRequest, googleLoginRequest, PublicUser } from '@/api/endpoints';
 
 type AuthContextValue = {
   user: PublicUser | null;
@@ -13,6 +13,7 @@ type AuthContextValue = {
     firstName: string;
     lastName: string;
   }) => Promise<void>;
+  loginWithGoogle: (idToken: string) => Promise<void>;
   logout: () => Promise<void>;
 };
 
@@ -57,6 +58,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUser(user);
   }
 
+  async function loginWithGoogle(idToken: string) {
+    const { user, accessToken } = await googleLoginRequest(idToken);
+    setAccessToken(accessToken);
+    setUser(user);
+  }
+
   async function logout() {
     await logoutRequest();
     setAccessToken(null);
@@ -64,7 +71,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }
 
   return (
-    <AuthContext.Provider value={{ user, loading, login, register, logout }}>{children}</AuthContext.Provider>
+    <AuthContext.Provider value={{ user, loading, login, register, loginWithGoogle, logout }}>
+      {children}
+    </AuthContext.Provider>
   );
 }
 

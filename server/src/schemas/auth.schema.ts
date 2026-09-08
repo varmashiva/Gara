@@ -17,5 +17,12 @@ export const loginSchema = z
   })
   .strict();
 
+export const googleLoginSchema = z
+  .object({
+    idToken: z.string().min(1),
+  })
+  .strict();
+
 export type RegisterInput = z.infer<typeof registerSchema>;
 export type LoginInput = z.infer<typeof loginSchema>;
+export type GoogleLoginInput = z.infer<typeof googleLoginSchema>;

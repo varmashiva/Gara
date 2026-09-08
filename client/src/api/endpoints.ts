@@ -29,6 +29,11 @@ export async function loginRequest(payload: { email: string; password: string })
   return res.data.data;
 }
 
+export async function googleLoginRequest(idToken: string) {
+  const res = await api.post<{ success: true; data: AuthResponse }>('/auth/google', { idToken });
+  return res.data.data;
+}
+
 export async function meRequest() {
   const res = await api.get<{ success: true; data: PublicUser }>('/auth/me');
   return res.data.data;

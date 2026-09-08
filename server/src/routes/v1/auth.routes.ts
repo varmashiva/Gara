@@ -2,7 +2,7 @@ import { Router } from 'express';
 import rateLimit from 'express-rate-limit';
 import * as authController from '../../controllers/auth.controller';
 import { validateBody } from '../../middleware/validation.middleware';
-import { registerSchema, loginSchema } from '../../schemas/auth.schema';
+import { registerSchema, loginSchema, googleLoginSchema } from '../../schemas/auth.schema';
 import { requireAuth } from '../../middleware/auth.middleware';
 import { asyncHandler } from '../../utils/asyncHandler';
 
@@ -19,6 +19,12 @@ authRouter.post(
   asyncHandler(authController.registerHandler)
 );
 authRouter.post('/login', credentialLimiter, validateBody(loginSchema), asyncHandler(authController.loginHandler));
+authRouter.post(
+  '/google',
+  credentialLimiter,
+  validateBody(googleLoginSchema),
+  asyncHandler(authController.googleLoginHandler)
+);
 authRouter.post('/refresh', asyncHandler(authController.refreshHandler));
 authRouter.post('/logout', asyncHandler(authController.logoutHandler));
 authRouter.get('/me', requireAuth(), asyncHandler(authController.meHandler));

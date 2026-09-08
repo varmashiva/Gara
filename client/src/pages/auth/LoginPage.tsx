@@ -4,6 +4,7 @@ import { z } from 'zod';
 import { useNavigate, Link } from 'react-router-dom';
 import { useState } from 'react';
 import { useAuth } from '@/features/auth/AuthContext';
+import { GoogleSignInButton } from '@/features/auth/GoogleSignInButton';
 
 const schema = z.object({
   email: z.string().email('Enter a valid email'),
@@ -85,6 +86,16 @@ export function LoginPage() {
           {isSubmitting ? 'Signing in...' : 'Sign in'}
         </button>
       </form>
+      {import.meta.env.VITE_GOOGLE_CLIENT_ID && (
+        <>
+          <div className="my-4 flex items-center gap-3 text-xs text-gray-400">
+            <span className="h-px flex-1 bg-gray-200" />
+            or
+            <span className="h-px flex-1 bg-gray-200" />
+          </div>
+          <GoogleSignInButton />
+        </>
+      )}
       <p className="mt-4 text-sm text-gray-600">
         No account?{' '}
         <Link to="/register" className="text-brand-600 underline">

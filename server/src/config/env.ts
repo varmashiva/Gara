@@ -12,6 +12,8 @@ const envSchema = z.object({
   JWT_ACCESS_SECRET: z.string().default('dev-access-secret-change-me'),
   JWT_REFRESH_SECRET: z.string().default('dev-refresh-secret-change-me'),
 
+  GOOGLE_CLIENT_ID: z.string().optional().default(''),
+
   SHIPPING_PROVIDER_MODE: z.enum(['mock', 'real']).default('mock'),
   SHIPROCKET_EMAIL: z.string().optional().default(''),
   SHIPROCKET_PASSWORD: z.string().optional().default(''),

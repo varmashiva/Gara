@@ -13,6 +13,10 @@ export interface VerifySignatureParams {
   signature: string;
 }
 
+export interface RefundResult {
+  providerRefundId: string;
+}
+
 /**
  * Business logic depends on this interface, never on a specific gateway
  * SDK — swapping or adding a provider should never touch a controller or
@@ -21,4 +25,5 @@ export interface VerifySignatureParams {
 export interface PaymentProvider {
   createOrder(params: CreatePaymentOrderParams): Promise<CreatePaymentOrderResult>;
   verifySignature(params: VerifySignatureParams): boolean;
+  refund(providerPaymentId: string, amount: number): Promise<RefundResult>;
 }

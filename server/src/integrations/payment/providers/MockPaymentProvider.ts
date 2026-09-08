@@ -1,8 +1,10 @@
+import { randomUUID } from 'crypto';
 import {
   PaymentProvider,
   CreatePaymentOrderParams,
   CreatePaymentOrderResult,
   VerifySignatureParams,
+  RefundResult,
 } from '../PaymentProvider';
 
 /**
@@ -18,5 +20,9 @@ export class MockPaymentProvider implements PaymentProvider {
 
   verifySignature(params: VerifySignatureParams): boolean {
     return params.signature === 'mock-signature';
+  }
+
+  async refund(_providerPaymentId: string, _amount: number): Promise<RefundResult> {
+    return { providerRefundId: `mock_refund_${randomUUID().slice(0, 8)}` };
   }
 }

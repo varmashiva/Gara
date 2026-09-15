@@ -35,70 +35,67 @@ export function LoginPage() {
 
   return (
     <div className="mx-auto flex min-h-[70vh] max-w-sm flex-col justify-center px-4">
-      <h1 className="mb-6 text-2xl font-semibold text-brand-700">Welcome back</h1>
+      <p className="text-sm font-semibold uppercase tracking-widest text-brand-300">Sign in</p>
+      <h1 className="mb-6 mt-1 font-display text-3xl font-semibold text-paper-50">Welcome back</h1>
       <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-4" noValidate>
         <div>
-          <label htmlFor="email" className="mb-1 block text-sm font-medium">
+          <label htmlFor="email" className="mb-1 block text-sm font-medium text-paper-200">
             Email
           </label>
           <input
             id="email"
             type="email"
-            className="w-full rounded-md border border-gray-300 px-3 py-2 focus:border-brand-500 focus:outline-none"
+            className="input"
             aria-invalid={!!errors.email}
             aria-describedby={errors.email ? 'email-error' : undefined}
             {...register('email')}
           />
           {errors.email && (
-            <p id="email-error" className="mt-1 text-sm text-red-600">
+            <p id="email-error" className="mt-1 text-sm text-brand-300">
               {errors.email.message}
             </p>
           )}
         </div>
         <div>
-          <label htmlFor="password" className="mb-1 block text-sm font-medium">
+          <label htmlFor="password" className="mb-1 block text-sm font-medium text-paper-200">
             Password
           </label>
           <input
             id="password"
             type="password"
-            className="w-full rounded-md border border-gray-300 px-3 py-2 focus:border-brand-500 focus:outline-none"
+            className="input"
             aria-invalid={!!errors.password}
             aria-describedby={errors.password ? 'password-error' : undefined}
             {...register('password')}
           />
           {errors.password && (
-            <p id="password-error" className="mt-1 text-sm text-red-600">
+            <p id="password-error" className="mt-1 text-sm text-brand-300">
               {errors.password.message}
             </p>
           )}
         </div>
         {serverError && (
-          <p role="alert" className="text-sm text-red-600">
+          <p role="alert" className="text-sm text-brand-300">
             {serverError}
           </p>
         )}
-        <button
-          type="submit"
-          disabled={isSubmitting}
-          className="rounded-md bg-brand-600 px-4 py-2 font-medium text-white hover:bg-brand-700 disabled:opacity-60"
-        >
+        <button type="submit" disabled={isSubmitting} className="btn-pill-primary disabled:opacity-60">
           {isSubmitting ? 'Signing in...' : 'Sign in'}
         </button>
       </form>
       {import.meta.env.VITE_GOOGLE_CLIENT_ID && (
         <>
-          <div className="my-4 flex items-center gap-3 text-xs text-gray-400">
-            <span className="h-px flex-1 bg-gray-200" />
+          <div className="my-4 flex items-center gap-3 text-xs text-paper-600">
+            <span className="h-px flex-1 bg-paper-50/15" />
             or
-            <span className="h-px flex-1 bg-gray-200" />
+            <span className="h-px flex-1 bg-paper-50/15" />
           </div>
           <GoogleSignInButton />
         </>
       )}
-      <p className="mt-4 text-sm text-gray-600">
+      <p className="mt-4 text-sm text-paper-400">
         No account?{' '}
-        <Link to="/register" className="text-brand-600 underline">
+        <Link to="/register" className="font-semibold text-brand-300 hover:text-brand-300">
           Register
         </Link>
       </p>

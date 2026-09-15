@@ -13,6 +13,15 @@ export function useCreateAddress() {
   });
 }
 
+export function useUpdateAddress() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, ...payload }: { id: string } & Parameters<typeof api.updateAddress>[1]) =>
+      api.updateAddress(id, payload),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['addresses'] }),
+  });
+}
+
 export function useOrders() {
   return useQuery({ queryKey: ['orders'], queryFn: api.fetchOrders });
 }

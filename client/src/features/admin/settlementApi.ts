@@ -1,6 +1,5 @@
 import { api } from '@/api/axios';
 
-export type ApprovedSeller = { _id: string; storeName: string };
 export type Settlement = {
   _id: string;
   sellerId: string;
@@ -17,18 +16,13 @@ export type Payout = {
   status: 'PENDING' | 'PROCESSING' | 'PAID' | 'FAILED';
 };
 
-export async function fetchApprovedSellers() {
-  const res = await api.get<{ success: true; data: ApprovedSeller[] }>('/admin/sellers');
-  return res.data.data;
-}
-
 export async function fetchSettlements() {
   const res = await api.get<{ success: true; data: Settlement[] }>('/admin/settlements');
   return res.data.data;
 }
 
-export async function createSettlement(sellerId: string) {
-  const res = await api.post<{ success: true; data: Settlement }>('/admin/settlements', { sellerId });
+export async function createSettlement() {
+  const res = await api.post<{ success: true; data: Settlement }>('/admin/settlements');
   return res.data.data;
 }
 

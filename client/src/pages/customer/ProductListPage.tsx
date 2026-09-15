@@ -1,11 +1,18 @@
 import { useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { useProducts, useCategories } from '@/features/products/hooks';
 import { ProductCard } from '@/components/product/ProductCard';
 import { Pagination } from '@/components/common/Pagination';
 import { ProductQuery } from '@/types/product';
 
 export function ProductListPage() {
-  const [query, setQuery] = useState<ProductQuery>({ page: 1, limit: 12, sort: 'newest' });
+  const [searchParams] = useSearchParams();
+  const [query, setQuery] = useState<ProductQuery>({
+    page: 1,
+    limit: 12,
+    sort: 'newest',
+    category: searchParams.get('category') ?? undefined,
+  });
   const [searchInput, setSearchInput] = useState('');
 
   const { data, isLoading, isError } = useProducts(query);
@@ -17,50 +24,53 @@ export function ProductListPage() {
 
   return (
     <div>
-      <h1 className="mb-6 text-2xl font-bold text-brand-700">Browse products</h1>
+      <p className="text-sm font-semibold uppercase tracking-widest text-brand-300">Full menu</p>
+      <h1 className="mb-6 mt-1 font-display text-3xl font-semibold text-paper-50">Browse products</h1>
 
       <form
         onSubmit={(e) => {
           e.preventDefault();
           updateQuery({ search: searchInput || undefined });
         }}
-        className="mb-6 flex flex-wrap gap-3"
+        className="mb-8 flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center"
       >
         <input
           type="search"
           placeholder="Search for pickles, sweets, snacks..."
           value={searchInput}
           onChange={(e) => setSearchInput(e.target.value)}
-          className="min-w-[220px] flex-1 rounded-md border border-gray-300 px-3 py-2 text-sm"
+          className="input sm:min-w-[220px] sm:flex-1"
           aria-label="Search products"
         />
-        <select
-          value={query.category ?? ''}
-          onChange={(e) => updateQuery({ category: e.target.value || undefined })}
-          className="rounded-md border border-gray-300 px-3 py-2 text-sm"
-          aria-label="Filter by category"
-        >
-          <option value="">All categories</option>
-          {categories?.map((c) => (
-            <option key={c._id} value={c._id}>
-              {c.icon} {c.name}
-            </option>
-          ))}
-        </select>
-        <select
-          value={query.isVeg === undefined ? '' : String(query.isVeg)}
-          onChange={(e) => updateQuery({ isVeg: e.target.value === '' ? undefined : e.target.value === 'true' })}
-          className="rounded-md border border-gray-300 px-3 py-2 text-sm"
-          aria-label="Filter by veg/non-veg"
-        >
-          <option value="">Veg &amp; Non-veg</option>
-          <option value="true">Veg only</option>
-          <option value="false">Non-veg only</option>
-        </select>
+        <div className="grid grid-cols-2 gap-3 sm:contents">
+          <select
+            value={query.category ?? ''}
+            onChange={(e) => updateQuery({ category: e.target.value || undefined })}
+            className="input sm:w-auto"
+            aria-label="Filter by category"
+          >
+            <option value="">All categories</option>
+            {categories?.map((c) => (
+              <option key={c._id} value={c._id}>
+                {c.icon} {c.name}
+              </option>
+            ))}
+          </select>
+          <select
+            value={query.isVeg === undefined ? '' : String(query.isVeg)}
+            onChange={(e) => updateQuery({ isVeg: e.target.value === '' ? undefined : e.target.value === 'true' })}
+            className="input sm:w-auto"
+            aria-label="Filter by veg/non-veg"
+          >
+            <option value="">Veg &amp; Non-veg</option>
+            <option value="true">Veg only</option>
+            <option value="false">Non-veg only</option>
+          </select>
+        </div>
         <select
           value={query.sort}
           onChange={(e) => updateQuery({ sort: e.target.value as ProductQuery['sort'] })}
-          className="rounded-md border border-gray-300 px-3 py-2 text-sm"
+          className="input sm:w-auto"
           aria-label="Sort products"
         >
           <option value="newest">Newest</option>
@@ -68,16 +78,16 @@ export function ProductListPage() {
           <option value="price_desc">Price: High to Low</option>
           <option value="rating">Top Rated</option>
         </select>
-        <button type="submit" className="rounded-md bg-brand-600 px-4 py-2 text-sm font-medium text-white">
+        <button type="submit" className="btn-pill-primary justify-center sm:!px-5 sm:!py-2">
           Search
         </button>
       </form>
 
-      {isLoading && <p className="text-gray-500">Loading products...</p>}
-      {isError && <p className="text-red-600">Failed to load products.</p>}
+      {isLoading && <p className="text-paper-600">Loading products...</p>}
+      {isError && <p className="text-brand-300">Failed to load products.</p>}
 
       {data && data.items.length === 0 && (
-        <div className="rounded-lg border border-dashed border-gray-300 p-8 text-center text-gray-500">
+        <div className="rounded-xl2 border border-dashed border-paper-50/20 p-10 text-center text-paper-400">
           No products match your filters.
         </div>
       )}

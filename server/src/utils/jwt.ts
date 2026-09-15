@@ -4,7 +4,7 @@ import { env } from '../config/env';
 
 export type AccessTokenPayload = {
   sub: string;
-  role: 'CUSTOMER' | 'SELLER' | 'ADMIN';
+  role: 'CUSTOMER' | 'ADMIN';
 };
 
 export type RefreshTokenPayload = {

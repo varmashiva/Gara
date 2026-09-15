@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import * as settlementService from '../services/settlement.service';
 import * as payoutService from '../services/payout.service';
+import { getOrCreateHouseSeller } from '../services/seller.service';
 import { sendSuccess } from '../utils/response';
 
 export async function listHandler(req: Request, res: Response) {
@@ -10,7 +11,8 @@ export async function listHandler(req: Request, res: Response) {
 }
 
 export async function createHandler(req: Request, res: Response) {
-  const settlement = await settlementService.createSettlementForSeller(req.body.sellerId);
+  const seller = await getOrCreateHouseSeller(req.user!.sub);
+  const settlement = await settlementService.createSettlementForSeller(seller.id);
   return sendSuccess(res, settlement, 201);
 }
 

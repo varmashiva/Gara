@@ -26,7 +26,7 @@ export function NotificationBell() {
     <div className="relative">
       <button
         onClick={handleOpen}
-        className="relative text-gray-700 hover:text-brand-700"
+        className="relative text-paper-300 hover:text-brand-300"
         aria-label="Notifications"
       >
         <Bell size={20} />
@@ -37,16 +37,16 @@ export function NotificationBell() {
         )}
       </button>
       {open && (
-        <div className="absolute right-0 z-10 mt-2 w-80 rounded-lg border border-gray-200 bg-white shadow-lg">
+        <div className="absolute right-0 z-10 mt-2 w-80 max-w-[calc(100vw-2rem)] rounded-lg border border-paper-50/15 bg-surface-50 shadow-lg">
           {!data || data.length === 0 ? (
-            <p className="p-4 text-sm text-gray-500">No notifications yet.</p>
+            <p className="p-4 text-sm text-paper-400">No notifications yet.</p>
           ) : (
-            <ul className="max-h-96 divide-y divide-gray-100 overflow-y-auto">
+            <ul className="max-h-96 divide-y divide-paper-50/10 overflow-y-auto">
               {data.map((n) => (
                 <li key={n._id} className="p-3 text-sm">
-                  <p className="font-medium text-gray-900">{n.title}</p>
-                  <p className="text-gray-600">{n.body}</p>
-                  <p className="mt-1 text-xs text-gray-400">{new Date(n.createdAt).toLocaleString()}</p>
+                  <p className="font-medium text-paper-50">{n.title}</p>
+                  <p className="text-paper-400">{n.body}</p>
+                  <p className="mt-1 text-xs text-paper-600">{new Date(n.createdAt).toLocaleString()}</p>
                 </li>
               ))}
             </ul>

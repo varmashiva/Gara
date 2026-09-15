@@ -4,7 +4,7 @@ export type PublicUser = {
   id: string;
   username: string;
   email: string;
-  role: 'CUSTOMER' | 'SELLER' | 'ADMIN';
+  role: 'CUSTOMER' | 'ADMIN';
   firstName: string;
   lastName: string;
   avatar?: string;

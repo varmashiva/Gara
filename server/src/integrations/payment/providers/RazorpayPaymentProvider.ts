@@ -4,6 +4,7 @@ import {
   CreatePaymentOrderParams,
   CreatePaymentOrderResult,
   VerifySignatureParams,
+  VerifyWebhookSignatureParams,
   RefundResult,
 } from '../PaymentProvider';
 import { env } from '../../../config/env';
@@ -13,38 +14,28 @@ import { env } from '../../../config/env';
  * contract for a long time (basic-auth with key_id:key_secret, POST /orders
  * with amount in paise + currency + receipt). Still, confirm against
  * https://razorpay.com/docs/api/orders/ before going live — this has not
- * been exercised against the real API in this session (no credentials
- * available here), only written to the documented shape.
+ * been exercised against the real API in this session, only written to the
+ * documented shape.
  *
- * Signature verification here is Razorpay's documented HMAC-SHA256 of
- * "{order_id}|{payment_id}" using the key secret — this is the CLIENT-SIDE
- * checkout-success verification scheme (what the frontend SDK hands back
- * after payment), and it's what this method implements.
- *
- * IMPORTANT / SECURITY: this is a DIFFERENT scheme from Razorpay's actual
- * server-to-server WEBHOOK signature, which this class does NOT implement.
- * A real Razorpay webhook:
- *   - is signed with a separate Webhook Secret (configured in the Razorpay
- *     dashboard, NOT env.PAYMENT_SECRET / the API key secret used above),
- *   - signs the raw request body bytes (HMAC-SHA256(rawBody, webhookSecret)),
- *     not "order_id|payment_id",
- *   - is delivered in an X-Razorpay-Signature HEADER, not a body field,
- *   - and its JSON payload shape is Razorpay's own event envelope
- *     ({event, payload: {payment: {entity: {...}}}, ...}), not the
- *     {eventId, providerOrderId, providerPaymentId, status, signature}
- *     shape this codebase's /payments/webhook route expects.
- * Wiring a real Razorpay account therefore needs, in addition to this
- * class: (1) capturing the raw body for that one route BEFORE the global
- * JSON body-parser runs (e.g. express.raw() mounted on that path first,
- * the standard Stripe/Razorpay-in-Express pattern), (2) a real HMAC-over-
- * raw-body check against X-Razorpay-Signature using a new
- * RAZORPAY_WEBHOOK_SECRET env var, and (3) a small adapter that maps
- * Razorpay's event envelope into this app's internal webhook shape before
- * calling payment.service.handleWebhook. None of that exists yet — the
- * current /payments/webhook contract was designed around MockPaymentProvider
- * for local dev/test, and this class's verifySignature would silently
- * reject every real Razorpay webhook delivery as-is. Flagging this
- * explicitly rather than leaving it subtly wrong.
+ * This provider implements TWO distinct signature schemes — do not conflate
+ * them:
+ *   - verifySignature(): the CLIENT-SIDE checkout-success check. Razorpay's
+ *     frontend SDK hands back {order_id, payment_id, signature} after a
+ *     successful checkout; this is HMAC-SHA256("order_id|payment_id",
+ *     key_secret). Convenient for optimistic UI, but never trusted as the
+ *     source of truth for marking an order paid — Rule 9, see
+ *     payment.service.ts.
+ *   - verifyWebhookSignature(): the real server-to-server WEBHOOK check.
+ *     Razorpay signs the RAW request body with a separate Webhook Secret
+ *     (RAZORPAY_WEBHOOK_SECRET, created in Dashboard > Settings > Webhooks —
+ *     NOT the API key secret used above) as
+ *     HMAC-SHA256(rawBodyBytes, webhookSecret), delivered in an
+ *     X-Razorpay-Signature header. This is the one payment.service.ts's
+ *     handleRazorpayWebhook() actually trusts to confirm an order.
+ * The raw-body capture this needs happens once, globally, in app.ts
+ * (express.json's `verify` option stashes the exact bytes on req.rawBody
+ * before JSON-parsing them) — cheap enough to do for every request rather
+ * than carving out a route-specific raw-body parser.
  */
 export class RazorpayPaymentProvider implements PaymentProvider {
   private readonly baseUrl = 'https://api.razorpay.com/v1';
@@ -80,6 +71,18 @@ export class RazorpayPaymentProvider implements PaymentProvider {
       .update(`${params.providerOrderId}|${params.providerPaymentId}`)
       .digest('hex');
     return expected === params.signature;
+  }
+
+  verifyWebhookSignature(params: VerifyWebhookSignatureParams): boolean {
+    if (!env.RAZORPAY_WEBHOOK_SECRET || !params.signature) return false;
+
+    const expected = crypto.createHmac('sha256', env.RAZORPAY_WEBHOOK_SECRET).update(params.rawBody).digest('hex');
+    const expectedBuf = Buffer.from(expected, 'utf8');
+    const actualBuf = Buffer.from(params.signature, 'utf8');
+    // timingSafeEqual throws on a length mismatch rather than returning
+    // false, so that case has to be handled separately.
+    if (expectedBuf.length !== actualBuf.length) return false;
+    return crypto.timingSafeEqual(expectedBuf, actualBuf);
   }
 
   // Razorpay Refunds API — POST /payments/{payment_id}/refund with amount

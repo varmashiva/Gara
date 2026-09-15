@@ -23,6 +23,11 @@ const envSchema = z.object({
   PAYMENT_PROVIDER_MODE: z.enum(['mock', 'real']).default('mock'),
   PAYMENT_KEY: z.string().optional().default(''),
   PAYMENT_SECRET: z.string().optional().default(''),
+  // Separate from PAYMENT_KEY/PAYMENT_SECRET — this comes from the Razorpay
+  // Dashboard's Webhooks section (Settings > Webhooks > the specific webhook
+  // you create), not the API Keys page. Required only when actually running
+  // with PAYMENT_PROVIDER_MODE=real.
+  RAZORPAY_WEBHOOK_SECRET: z.string().optional().default(''),
 
   REDIS_ENABLED: z
     .string()

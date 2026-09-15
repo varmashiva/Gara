@@ -1,6 +1,8 @@
 export type ProductImage = {
   url: string;
+  publicId: string;
   alt?: string;
+  order: number;
 };
 
 export type ProductVariant = {

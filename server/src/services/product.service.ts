@@ -3,7 +3,7 @@ import { Product, ProductDocument } from '../models/Product';
 import { Category } from '../models/Category';
 import { AppError } from '../utils/errors';
 import { slugify } from '../utils/slugify';
-import { getSellerByUserId } from './seller.service';
+import { getSellerByUserId, getOrCreateHouseSeller } from './seller.service';
 import { storageProvider } from '../integrations/storage/storageProviderFactory';
 import { recordAudit } from './audit.service';
 import { CreateProductInput, UpdateProductInput, ProductQueryInput } from '../schemas/product.schema';
@@ -84,6 +84,48 @@ export async function createProduct(userId: string, input: CreateProductInput) {
   });
 }
 
+export async function adminCreateProduct(adminUserId: string, input: CreateProductInput) {
+  const seller = await getOrCreateHouseSeller(adminUserId);
+  const category = await requireActiveCategory(input.categoryId);
+  const slug = await generateUniqueProductSlug(input.name);
+
+  const product = await Product.create({
+    sellerId: seller._id,
+    categoryId: category._id,
+    categorySnapshot: { name: category.name, slug: category.slug },
+    name: input.name,
+    slug,
+    description: input.description,
+    price: input.price,
+    discountPercent: input.discountPercent,
+    ingredients: input.ingredients,
+    allergens: input.allergens,
+    weightGrams: input.weightGrams,
+    shelfLifeDays: input.shelfLifeDays,
+    storageInstructions: input.storageInstructions,
+    prepTimeMinutes: input.prepTimeMinutes,
+    isVeg: input.isVeg,
+    inventory: {
+      availableStock: input.availableStock,
+      reservedStock: 0,
+      lowStockThreshold: input.lowStockThreshold,
+    },
+    variants: toVariantSubdocs(input.variants),
+    // Admin manages the catalog directly — no seller-submission review loop.
+    status: 'APPROVED',
+  });
+
+  recordAudit({
+    actorId: adminUserId,
+    actorRole: 'ADMIN',
+    action: 'PRODUCT_CREATED_BY_ADMIN',
+    entityType: 'Product',
+    entityId: product.id,
+  });
+
+  return product;
+}
+
 async function findOwnedProduct(userId: string, productId: string): Promise<ProductDocument> {
   const seller = await getSellerByUserId(userId);
   const product = await Product.findOne({ _id: productId, sellerId: seller._id, isDeleted: false });
@@ -93,9 +135,7 @@ async function findOwnedProduct(userId: string, productId: string): Promise<Prod
   return product;
 }
 
-export async function updateProduct(userId: string, productId: string, input: UpdateProductInput) {
-  const product = await findOwnedProduct(userId, productId);
-
+async function applyProductUpdate(product: ProductDocument, input: UpdateProductInput) {
   if (input.categoryId && input.categoryId !== String(product.categoryId)) {
     const category = await requireActiveCategory(input.categoryId);
     product.categoryId = category._id as typeof product.categoryId;
@@ -110,6 +150,34 @@ export async function updateProduct(userId: string, productId: string, input: Up
   if (variants) product.variants = toVariantSubdocs(variants) as typeof product.variants;
 
   await product.save();
+}
+
+async function findAnyProduct(productId: string): Promise<ProductDocument> {
+  const product = await Product.findOne({ _id: productId, isDeleted: false });
+  if (!product) {
+    throw AppError.notFound('Product not found', 'PRODUCT_NOT_FOUND');
+  }
+  return product;
+}
+
+export async function updateProduct(userId: string, productId: string, input: UpdateProductInput) {
+  const product = await findOwnedProduct(userId, productId);
+  await applyProductUpdate(product, input);
+  return product;
+}
+
+export async function adminUpdateProduct(adminUserId: string, productId: string, input: UpdateProductInput) {
+  const product = await findAnyProduct(productId);
+  await applyProductUpdate(product, input);
+
+  recordAudit({
+    actorId: adminUserId,
+    actorRole: 'ADMIN',
+    action: 'PRODUCT_UPDATED_BY_ADMIN',
+    entityType: 'Product',
+    entityId: product.id,
+  });
+
   return product;
 }
 
@@ -143,12 +211,29 @@ export async function reactivateProduct(userId: string, productId: string) {
   return product;
 }
 
-export async function deleteProduct(userId: string, productId: string) {
-  const product = await findOwnedProduct(userId, productId);
+async function softDeleteProduct(product: ProductDocument, deletedByUserId: string) {
   product.isDeleted = true;
   product.deletedAt = new Date();
-  product.deletedBy = userId as unknown as typeof product.deletedBy;
+  product.deletedBy = deletedByUserId as unknown as typeof product.deletedBy;
   await product.save();
+}
+
+export async function deleteProduct(userId: string, productId: string) {
+  const product = await findOwnedProduct(userId, productId);
+  await softDeleteProduct(product, userId);
+}
+
+export async function adminDeleteProduct(adminUserId: string, productId: string) {
+  const product = await findAnyProduct(productId);
+  await softDeleteProduct(product, adminUserId);
+
+  recordAudit({
+    actorId: adminUserId,
+    actorRole: 'ADMIN',
+    action: 'PRODUCT_DELETED_BY_ADMIN',
+    entityType: 'Product',
+    entityId: product.id,
+  });
 }
 
 export async function listMyProducts(userId: string) {

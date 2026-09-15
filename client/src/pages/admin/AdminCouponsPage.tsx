@@ -62,39 +62,39 @@ export function AdminCouponsPage() {
 
   return (
     <div>
-      <button onClick={() => setShowForm((v) => !v)} className="mb-4 text-sm text-brand-600 underline">
+      <button onClick={() => setShowForm((v) => !v)} className="mb-4 text-sm text-brand-300 underline">
         {showForm ? 'Cancel' : '+ New coupon'}
       </button>
 
       {showForm && (
-        <form onSubmit={handleSubmit(onSubmit)} className="mb-6 grid grid-cols-2 gap-3 rounded-lg border border-gray-200 p-4">
+        <form onSubmit={handleSubmit(onSubmit)} className="mb-6 grid grid-cols-2 gap-3 rounded-lg border border-paper-50/15 p-4">
           <div>
             <label className="mb-1 block text-sm font-medium">Code</label>
-            <input className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm" {...register('code')} />
+            <input className="w-full rounded-md border border-paper-50/20 px-3 py-2 text-sm" {...register('code')} />
             {errors.code && <p className="text-sm text-red-600">{errors.code.message}</p>}
           </div>
           <div>
             <label className="mb-1 block text-sm font-medium">Type</label>
-            <select className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm" {...register('discountType')}>
+            <select className="w-full rounded-md border border-paper-50/20 px-3 py-2 text-sm" {...register('discountType')}>
               <option value="PERCENTAGE">Percentage</option>
               <option value="FIXED_AMOUNT">Fixed amount (paise)</option>
             </select>
           </div>
           <div>
             <label className="mb-1 block text-sm font-medium">Discount value</label>
-            <input type="number" className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm" {...register('discountValue')} />
+            <input type="number" className="w-full rounded-md border border-paper-50/20 px-3 py-2 text-sm" {...register('discountValue')} />
           </div>
           <div>
             <label className="mb-1 block text-sm font-medium">Usage limit (optional)</label>
-            <input type="number" className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm" {...register('usageLimit')} />
+            <input type="number" className="w-full rounded-md border border-paper-50/20 px-3 py-2 text-sm" {...register('usageLimit')} />
           </div>
           <div>
             <label className="mb-1 block text-sm font-medium">Start date</label>
-            <input type="date" className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm" {...register('startDate')} />
+            <input type="date" className="w-full rounded-md border border-paper-50/20 px-3 py-2 text-sm" {...register('startDate')} />
           </div>
           <div>
             <label className="mb-1 block text-sm font-medium">End date</label>
-            <input type="date" className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm" {...register('endDate')} />
+            <input type="date" className="w-full rounded-md border border-paper-50/20 px-3 py-2 text-sm" {...register('endDate')} />
           </div>
           <div className="col-span-2 space-y-2">
             {validationErrors.length > 0 && (
@@ -116,12 +116,12 @@ export function AdminCouponsPage() {
         </form>
       )}
 
-      <ul className="divide-y divide-gray-100 rounded-lg border border-gray-100 bg-white">
+      <ul className="divide-y divide-paper-50/10 rounded-lg border border-paper-50/10 bg-surface-50">
         {coupons?.map((c) => (
           <li key={c._id} className="flex items-center justify-between p-4 text-sm">
             <div>
               <p className="font-medium">{c.code}</p>
-              <p className="text-gray-500">
+              <p className="text-paper-400">
                 {c.discountType === 'PERCENTAGE' ? `${c.discountValue}%` : `₹${(c.discountValue / 100).toFixed(2)}`} ·
                 Used {c.usedCount}
                 {c.usageLimit ? `/${c.usageLimit}` : ''}
@@ -129,7 +129,7 @@ export function AdminCouponsPage() {
             </div>
             <button
               onClick={() => toggleMutation.mutate({ id: c._id, status: c.status === 'ACTIVE' ? 'DISABLED' : 'ACTIVE' })}
-              className="rounded-md border border-gray-300 px-3 py-1.5 text-xs font-medium"
+              className="rounded-md border border-paper-50/20 px-3 py-1.5 text-xs font-medium"
             >
               {c.status === 'ACTIVE' ? 'Disable' : 'Enable'}
             </button>

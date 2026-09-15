@@ -4,6 +4,7 @@ import {
   CreatePaymentOrderParams,
   CreatePaymentOrderResult,
   VerifySignatureParams,
+  VerifyWebhookSignatureParams,
   RefundResult,
 } from '../PaymentProvider';
 
@@ -19,6 +20,10 @@ export class MockPaymentProvider implements PaymentProvider {
   }
 
   verifySignature(params: VerifySignatureParams): boolean {
+    return params.signature === 'mock-signature';
+  }
+
+  verifyWebhookSignature(params: VerifyWebhookSignatureParams): boolean {
     return params.signature === 'mock-signature';
   }
 

@@ -46,54 +46,51 @@ export function RegisterPage() {
 
   return (
     <div className="mx-auto flex min-h-[70vh] max-w-sm flex-col justify-center px-4">
-      <h1 className="mb-6 text-2xl font-semibold text-brand-700">Create your account</h1>
+      <p className="text-sm font-semibold uppercase tracking-widest text-brand-300">Join Gara</p>
+      <h1 className="mb-6 mt-1 font-display text-3xl font-semibold text-paper-50">Create your account</h1>
       <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-4" noValidate>
         {fields.map((f) => (
           <div key={f.name}>
-            <label htmlFor={f.name} className="mb-1 block text-sm font-medium">
+            <label htmlFor={f.name} className="mb-1 block text-sm font-medium text-paper-200">
               {f.label}
             </label>
             <input
               id={f.name}
               type={f.type}
-              className="w-full rounded-md border border-gray-300 px-3 py-2 focus:border-brand-500 focus:outline-none"
+              className="input"
               aria-invalid={!!errors[f.name]}
               aria-describedby={errors[f.name] ? `${f.name}-error` : undefined}
               {...register(f.name)}
             />
             {errors[f.name] && (
-              <p id={`${f.name}-error`} className="mt-1 text-sm text-red-600">
+              <p id={`${f.name}-error`} className="mt-1 text-sm text-brand-300">
                 {errors[f.name]?.message}
               </p>
             )}
           </div>
         ))}
         {serverError && (
-          <p role="alert" className="text-sm text-red-600">
+          <p role="alert" className="text-sm text-brand-300">
             {serverError}
           </p>
         )}
-        <button
-          type="submit"
-          disabled={isSubmitting}
-          className="rounded-md bg-brand-600 px-4 py-2 font-medium text-white hover:bg-brand-700 disabled:opacity-60"
-        >
+        <button type="submit" disabled={isSubmitting} className="btn-pill-primary disabled:opacity-60">
           {isSubmitting ? 'Creating account...' : 'Create account'}
         </button>
       </form>
       {import.meta.env.VITE_GOOGLE_CLIENT_ID && (
         <>
-          <div className="my-4 flex items-center gap-3 text-xs text-gray-400">
-            <span className="h-px flex-1 bg-gray-200" />
+          <div className="my-4 flex items-center gap-3 text-xs text-paper-600">
+            <span className="h-px flex-1 bg-paper-50/15" />
             or
-            <span className="h-px flex-1 bg-gray-200" />
+            <span className="h-px flex-1 bg-paper-50/15" />
           </div>
           <GoogleSignInButton />
         </>
       )}
-      <p className="mt-4 text-sm text-gray-600">
+      <p className="mt-4 text-sm text-paper-400">
         Already have an account?{' '}
-        <Link to="/login" className="text-brand-600 underline">
+        <Link to="/login" className="font-semibold text-brand-300 hover:text-brand-300">
           Sign in
         </Link>
       </p>

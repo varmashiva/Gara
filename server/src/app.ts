@@ -10,6 +10,19 @@ import { sanitizeRequest } from './middleware/sanitize.middleware';
 import { notFoundHandler, errorHandler } from './middleware/error.middleware';
 import { CSRF_COOKIE, setCsrfCookie } from './middleware/csrf.middleware';
 
+declare global {
+  // eslint-disable-next-line @typescript-eslint/no-namespace
+  namespace Express {
+    interface Request {
+      // Exact bytes of the request body, stashed by express.json()'s
+      // `verify` hook below before JSON-parsing them. Real Razorpay webhook
+      // signature verification is HMAC over these exact raw bytes — the
+      // parsed/re-serialized req.body would not reproduce them byte-for-byte.
+      rawBody?: Buffer;
+    }
+  }
+}
+
 export function createApp() {
   const app = express();
 
@@ -39,7 +52,14 @@ export function createApp() {
       credentials: true,
     })
   );
-  app.use(express.json({ limit: '1mb' }));
+  app.use(
+    express.json({
+      limit: '1mb',
+      verify: (req, _res, buf) => {
+        (req as express.Request).rawBody = buf;
+      },
+    })
+  );
   app.use(cookieParser());
   app.use(sanitizeRequest);
 

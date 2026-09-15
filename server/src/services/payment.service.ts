@@ -39,6 +39,25 @@ export async function createPaymentOrder(userId: string, orderId: string) {
   return { providerOrderId, amount: order.grandTotal, provider };
 }
 
+async function applyPaymentUpdate(
+  payment: InstanceType<typeof Payment>,
+  status: 'captured' | 'failed',
+  providerPaymentId: string
+) {
+  if (status === 'captured' && payment.status !== 'SUCCESS') {
+    payment.status = 'SUCCESS';
+    payment.providerPaymentId = providerPaymentId;
+    await payment.save();
+    await confirmPayment(payment.orderId.toString());
+    recordAudit({ action: 'PAYMENT_CAPTURED', entityType: 'Payment', entityId: payment.id });
+  } else if (status === 'failed' && payment.status !== 'FAILED') {
+    payment.status = 'FAILED';
+    await payment.save();
+    await failOrExpireOrder(payment.orderId.toString(), 'PAYMENT_FAILED');
+    recordAudit({ action: 'PAYMENT_FAILED', entityType: 'Payment', entityId: payment.id });
+  }
+}
+
 /**
  * The webhook is the source of truth (Rule 9) — never called directly from
  * a "payment succeeded" message the frontend sends. Idempotency has two
@@ -47,6 +66,11 @@ export async function createPaymentOrder(userId: string, orderId: string) {
  * side effect runs), and the payment/order status checks below (guards
  * against two DIFFERENT event ids somehow representing the same logical
  * outcome).
+ *
+ * This is the MockPaymentProvider / client-side-scheme path (PAYMENT_PROVIDER_MODE=mock,
+ * or the client-side checkout-signature shape). For real Razorpay webhook
+ * deliveries see handleRazorpayWebhook below — different signature scheme,
+ * different payload shape entirely.
  */
 export async function handleWebhook(payload: WebhookInput) {
   const payment = await Payment.findOne({ providerOrderId: payload.providerOrderId });
@@ -85,20 +109,89 @@ export async function handleWebhook(payload: WebhookInput) {
     throw AppError.badRequest('Invalid webhook signature', 'INVALID_WEBHOOK_SIGNATURE');
   }
 
-  if (payload.status === 'captured' && payment.status !== 'SUCCESS') {
-    payment.status = 'SUCCESS';
-    payment.providerPaymentId = payload.providerPaymentId;
-    await payment.save();
-    await confirmPayment(payment.orderId.toString());
-    recordAudit({ action: 'PAYMENT_CAPTURED', entityType: 'Payment', entityId: payment.id });
-  } else if (payload.status === 'failed' && payment.status !== 'FAILED') {
-    payment.status = 'FAILED';
-    await payment.save();
-    await failOrExpireOrder(payment.orderId.toString(), 'PAYMENT_FAILED');
-    recordAudit({ action: 'PAYMENT_FAILED', entityType: 'Payment', entityId: payment.id });
+  await applyPaymentUpdate(payment, payload.status, payload.providerPaymentId);
+  await PaymentEvent.updateOne({ eventId: payload.eventId }, { processed: true });
+
+  return { duplicate: false };
+}
+
+interface RazorpayWebhookBody {
+  event?: string;
+  payload?: {
+    payment?: {
+      entity?: {
+        id?: string;
+        order_id?: string;
+        [key: string]: unknown;
+      };
+    };
+  };
+  [key: string]: unknown;
+}
+
+/**
+ * Real Razorpay webhook entry point — only reachable when
+ * PAYMENT_PROVIDER_MODE=real (see payment.controller.ts). Signature is
+ * verified over the RAW request body against RAZORPAY_WEBHOOK_SECRET
+ * (a separate credential from the API key/secret, from the Razorpay
+ * dashboard) BEFORE any database read/write, so an unauthenticated
+ * payload can never touch the database. Only payment.captured and
+ * payment.failed are acted on; every other Razorpay event type
+ * (order.paid, payment.authorized, refund.*, ...) is acknowledged
+ * without action so Razorpay stops retrying it.
+ */
+export async function handleRazorpayWebhook(rawBody: Buffer, signature: string, body: RazorpayWebhookBody) {
+  const signatureValid = paymentProvider.verifyWebhookSignature({ rawBody, signature });
+
+  if (!signatureValid) {
+    recordAudit({
+      action: 'PAYMENT_WEBHOOK_INVALID_SIGNATURE',
+      entityType: 'Payment',
+      entityId: body?.payload?.payment?.entity?.order_id ?? 'unknown',
+      after: { source: 'razorpay-webhook', event: body?.event },
+    });
+    throw AppError.badRequest('Invalid webhook signature', 'INVALID_WEBHOOK_SIGNATURE');
   }
 
-  await PaymentEvent.updateOne({ eventId: payload.eventId }, { processed: true });
+  const event = body.event;
+  const status: 'captured' | 'failed' | null =
+    event === 'payment.captured' ? 'captured' : event === 'payment.failed' ? 'failed' : null;
+
+  if (!status) {
+    return { duplicate: false, ignored: true };
+  }
+
+  const entity = body.payload?.payment?.entity;
+  const providerOrderId = entity?.order_id;
+  const providerPaymentId = entity?.id;
+  if (!providerOrderId || !providerPaymentId) {
+    return { duplicate: false, ignored: true };
+  }
+
+  const eventId = `${providerPaymentId}:${event}`;
+
+  const payment = await Payment.findOne({ providerOrderId });
+  if (!payment) {
+    throw AppError.notFound('Unknown payment order', 'PAYMENT_NOT_FOUND');
+  }
+
+  try {
+    await PaymentEvent.create({
+      paymentId: payment._id,
+      eventId,
+      eventType: status,
+      rawPayload: body,
+      processed: false,
+    });
+  } catch (err: unknown) {
+    if (err && typeof err === 'object' && 'code' in err && (err as { code: number }).code === 11000) {
+      return { duplicate: true };
+    }
+    throw err;
+  }
+
+  await applyPaymentUpdate(payment, status, providerPaymentId);
+  await PaymentEvent.updateOne({ eventId }, { processed: true });
 
   return { duplicate: false };
 }

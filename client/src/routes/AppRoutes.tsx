@@ -1,4 +1,4 @@
-import { Routes, Route } from 'react-router-dom';
+import { Routes, Route, Navigate } from 'react-router-dom';
 import { MainLayout } from '@/layouts/MainLayout';
 import { HomePage } from '@/pages/customer/HomePage';
 import { LoginPage } from '@/pages/auth/LoginPage';
@@ -9,18 +9,13 @@ import { CartPage } from '@/pages/customer/CartPage';
 import { CheckoutPage } from '@/pages/customer/CheckoutPage';
 import { OrdersPage } from '@/pages/customer/OrdersPage';
 import { OrderDetailPage } from '@/pages/customer/OrderDetailPage';
-import { SellerFulfillmentsPage } from '@/pages/seller/SellerFulfillmentsPage';
-import { SellerEarningsPage } from '@/pages/seller/SellerEarningsPage';
-import { SellerProductsPage } from '@/pages/seller/SellerProductsPage';
-import { AdminApplicationsPage } from '@/pages/admin/AdminApplicationsPage';
+import { AdminHeroPage } from '@/pages/admin/AdminHeroPage';
 import { AdminProductsPage } from '@/pages/admin/AdminProductsPage';
 import { AdminReturnsPage } from '@/pages/admin/AdminReturnsPage';
 import { AdminCouponsPage } from '@/pages/admin/AdminCouponsPage';
 import { AdminSettlementsPage } from '@/pages/admin/AdminSettlementsPage';
 import { ProtectedRoute } from './ProtectedRoute';
-import { SellerRoute } from './SellerRoute';
 import { AdminRoute } from './AdminRoute';
-import { SellerLayout } from '@/layouts/SellerLayout';
 import { AdminLayout } from '@/layouts/AdminLayout';
 
 export function AppRoutes() {
@@ -41,17 +36,10 @@ export function AppRoutes() {
         </Route>
       </Route>
 
-      <Route path="/seller" element={<SellerRoute />}>
-        <Route element={<SellerLayout />}>
-          <Route path="products" element={<SellerProductsPage />} />
-          <Route path="fulfillments" element={<SellerFulfillmentsPage />} />
-          <Route path="earnings" element={<SellerEarningsPage />} />
-        </Route>
-      </Route>
-
       <Route path="/admin" element={<AdminRoute />}>
         <Route element={<AdminLayout />}>
-          <Route path="applications" element={<AdminApplicationsPage />} />
+          <Route index element={<Navigate to="products" replace />} />
+          <Route path="hero" element={<AdminHeroPage />} />
           <Route path="products" element={<AdminProductsPage />} />
           <Route path="returns" element={<AdminReturnsPage />} />
           <Route path="coupons" element={<AdminCouponsPage />} />

@@ -13,6 +13,14 @@ export interface VerifySignatureParams {
   signature: string;
 }
 
+// Separate from VerifySignatureParams above: that one is the client-side
+// checkout-success check (order_id|payment_id). This is the real
+// server-to-server webhook check, keyed on the raw request body bytes.
+export interface VerifyWebhookSignatureParams {
+  rawBody: Buffer;
+  signature: string;
+}
+
 export interface RefundResult {
   providerRefundId: string;
 }
@@ -25,5 +33,6 @@ export interface RefundResult {
 export interface PaymentProvider {
   createOrder(params: CreatePaymentOrderParams): Promise<CreatePaymentOrderResult>;
   verifySignature(params: VerifySignatureParams): boolean;
+  verifyWebhookSignature(params: VerifyWebhookSignatureParams): boolean;
   refund(providerPaymentId: string, amount: number): Promise<RefundResult>;
 }

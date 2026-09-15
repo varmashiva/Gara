@@ -5,15 +5,15 @@ export function AdminReturnsPage() {
   const decide = useDecideReturn();
   const pending = data?.filter((r) => r.status === 'REQUESTED') ?? [];
 
-  if (isLoading) return <p className="text-gray-500">Loading...</p>;
-  if (pending.length === 0) return <p className="text-gray-600">No pending return requests.</p>;
+  if (isLoading) return <p className="text-paper-400">Loading...</p>;
+  if (pending.length === 0) return <p className="text-paper-400">No pending return requests.</p>;
 
   return (
     <ul className="space-y-3">
       {pending.map((r) => (
-        <li key={r._id} className="rounded-lg border border-gray-100 bg-white p-4">
+        <li key={r._id} className="rounded-lg border border-paper-50/10 bg-surface-50 p-4">
           <p className="font-medium">Order {r.orderId}</p>
-          <p className="text-sm text-gray-600">Reason: {r.reason}</p>
+          <p className="text-sm text-paper-400">Reason: {r.reason}</p>
           <div className="mt-2 flex gap-2">
             <button
               onClick={() => decide.mutate({ id: r._id, decision: 'APPROVED' })}

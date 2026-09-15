@@ -11,8 +11,13 @@ export async function createAddress(payload: Omit<Address, '_id' | 'isDefault'> 
   return res.data.data;
 }
 
-export async function createOrder(addressId: string) {
-  const res = await api.post<{ success: true; data: Order }>('/orders', { addressId });
+export async function updateAddress(id: string, payload: Partial<Omit<Address, '_id'>>) {
+  const res = await api.patch<{ success: true; data: Address }>(`/addresses/${id}`, payload);
+  return res.data.data;
+}
+
+export async function createOrder(addressId: string, couponCode?: string) {
+  const res = await api.post<{ success: true; data: Order }>('/orders', { addressId, couponCode });
   return res.data.data;
 }
 

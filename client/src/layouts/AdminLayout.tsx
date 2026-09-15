@@ -3,25 +3,25 @@ import { Outlet, Link } from 'react-router-dom';
 export function AdminLayout() {
   return (
     <div className="mx-auto max-w-5xl px-4 py-8">
-      <div className="mb-6 flex items-center justify-between border-b border-orange-100 pb-3">
-        <h1 className="text-xl font-bold text-brand-700">Admin Dashboard</h1>
+      <div className="mb-6 flex items-center justify-between border-b border-paper-50/15 pb-3">
+        <h1 className="text-xl font-bold text-brand-300">Admin Dashboard</h1>
         <nav className="flex gap-4 text-sm">
-          <Link to="/admin/applications" className="text-gray-700 hover:text-brand-700">
-            Seller Applications
+          <Link to="/admin/hero" className="text-paper-300 hover:text-brand-300">
+            Home banner
           </Link>
-          <Link to="/admin/products" className="text-gray-700 hover:text-brand-700">
+          <Link to="/admin/products" className="text-paper-300 hover:text-brand-300">
             Products
           </Link>
-          <Link to="/admin/returns" className="text-gray-700 hover:text-brand-700">
+          <Link to="/admin/returns" className="text-paper-300 hover:text-brand-300">
             Returns
           </Link>
-          <Link to="/admin/coupons" className="text-gray-700 hover:text-brand-700">
+          <Link to="/admin/coupons" className="text-paper-300 hover:text-brand-300">
             Coupons
           </Link>
-          <Link to="/admin/settlements" className="text-gray-700 hover:text-brand-700">
+          <Link to="/admin/settlements" className="text-paper-300 hover:text-brand-300">
             Settlements
           </Link>
-          <Link to="/" className="text-brand-600 underline">
+          <Link to="/" className="text-brand-300 underline">
             Back to marketplace
           </Link>
         </nav>

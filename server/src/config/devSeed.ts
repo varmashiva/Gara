@@ -1,17 +1,13 @@
 import { User } from '../models/User';
-import { Seller } from '../models/Seller';
-import { SellerApplication } from '../models/SellerApplication';
 import { Category } from '../models/Category';
 import { Product } from '../models/Product';
 import { hashPassword } from '../utils/password';
 import { slugify } from '../utils/slugify';
 import { logger } from '../utils/logger';
-import { env } from './env';
+import { getOrCreateHouseSeller } from '../services/seller.service';
 
 const DEV_ADMIN_EMAIL = 'admin@example.com';
 const DEV_ADMIN_PASSWORD = 'DevAdmin123!';
-const DEV_SELLER_EMAIL = 'seller@example.com';
-const DEV_SELLER_PASSWORD = 'DevSeller123!';
 const DEV_CUSTOMER_EMAIL = 'customer@example.com';
 const DEV_CUSTOMER_PASSWORD = 'DevCustomer123!';
 
@@ -67,55 +63,19 @@ export async function seedDevCustomer() {
 }
 
 /**
- * Populates a fresh dev database with one approved seller and a handful of
- * approved products, so the frontend has something real to render without
- * a manual curl setup dance every time the (in-memory, ephemeral) dev DB
- * restarts. Skips entirely if any product already exists.
+ * Populates a fresh dev database with the admin's house-managed catalog, so
+ * the frontend has something real to render without a manual curl setup
+ * dance every time the (in-memory, ephemeral) dev DB restarts. Skips
+ * entirely if any product already exists.
  */
 export async function seedDevCatalog() {
   const anyProduct = await Product.findOne();
   if (anyProduct) return;
 
-  const passwordHash = await hashPassword(DEV_SELLER_PASSWORD);
-  const sellerUser = await User.create({
-    username: 'seller',
-    email: DEV_SELLER_EMAIL,
-    passwordHash,
-    role: 'SELLER',
-    firstName: 'Dev',
-    lastName: 'Seller',
-    isEmailVerified: true,
-  });
+  const admin = await User.findOne({ role: 'ADMIN' });
+  if (!admin) return;
 
-  const application = await SellerApplication.create({
-    userId: sellerUser._id,
-    storeName: 'Amma Kitchen',
-    ownerName: 'Dev Seller',
-    phone: '9000000000',
-    email: DEV_SELLER_EMAIL,
-    address: {
-      addressLine1: '1 MG Road',
-      city: 'Bengaluru',
-      state: 'Karnataka',
-      postalCode: '560001',
-      country: 'India',
-    },
-    description: 'Homemade South Indian pickles, snacks, and sweets.',
-    foodCategories: ['pickles', 'snacks', 'sweets'],
-    status: 'APPROVED',
-    reviewNotes: 'Seeded for local development',
-  });
-
-  const seller = await Seller.create({
-    userId: sellerUser._id,
-    storeName: application.storeName,
-    storeSlug: slugify(application.storeName),
-    description: application.description,
-    foodCategories: application.foodCategories,
-    status: 'APPROVED',
-    commissionRate: env.DEFAULT_COMMISSION_RATE_BPS,
-    applicationId: application._id,
-  });
+  const seller = await getOrCreateHouseSeller(admin.id);
 
   const categoryDefs = [
     { name: 'Pickles', icon: '🥒' },
@@ -219,8 +179,7 @@ export async function seedDevCatalog() {
   }
 
   logger.info('Seeded development catalog', {
-    seller: DEV_SELLER_EMAIL,
-    sellerPassword: DEV_SELLER_PASSWORD,
+    admin: DEV_ADMIN_EMAIL,
     products: productDefs.length,
     note: 'development only',
   });

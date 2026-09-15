@@ -1,18 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import * as api from './api';
 
-export function useApplications(status?: string) {
-  return useQuery({ queryKey: ['admin', 'applications', status], queryFn: () => api.fetchApplications(status) });
-}
-
-export function useDecideApplication() {
-  const queryClient = useQueryClient();
-  return useMutation({
-    mutationFn: ({ id, decision }: { id: string; decision: 'APPROVED' | 'REJECTED' }) => api.decideApplication(id, decision),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['admin', 'applications'] }),
-  });
-}
-
 export function useAdminProducts(status?: string) {
   return useQuery({ queryKey: ['admin', 'products', status], queryFn: () => api.fetchAdminProducts(status) });
 }
@@ -22,6 +10,83 @@ export function useDecideProduct() {
   return useMutation({
     mutationFn: ({ id, decision }: { id: string; decision: 'APPROVED' | 'REJECTED' }) => api.decideProduct(id, decision),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['admin', 'products'] }),
+  });
+}
+
+export function useCreateAdminProduct() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (payload: api.NewAdminProduct) => api.createAdminProduct(payload),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['admin', 'products'] }),
+  });
+}
+
+export function useUploadAdminProductImage() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, file }: { id: string; file: File }) => api.uploadAdminProductImage(id, file),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['admin', 'products'] }),
+  });
+}
+
+export function useDeleteAdminProductImage() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, publicId }: { id: string; publicId: string }) => api.deleteAdminProductImage(id, publicId),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['admin', 'products'] }),
+  });
+}
+
+export function useUpdateAdminProduct() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, edits }: { id: string; edits: api.AdminProductEdits }) => api.updateAdminProduct(id, edits),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['admin', 'products'] }),
+  });
+}
+
+export function useDeleteAdminProduct() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (id: string) => api.deleteAdminProduct(id),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['admin', 'products'] }),
+  });
+}
+
+export function useAdminHeroBanner() {
+  return useQuery({ queryKey: ['admin', 'hero'], queryFn: api.fetchAdminHeroBanner });
+}
+
+export function useUpdateHeroBanner() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (payload: api.HeroBannerEdits) => api.updateHeroBanner(payload),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin', 'hero'] });
+      queryClient.invalidateQueries({ queryKey: ['hero'] });
+    },
+  });
+}
+
+export function useUploadHeroBannerImage() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (file: File) => api.uploadHeroBannerImage(file),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin', 'hero'] });
+      queryClient.invalidateQueries({ queryKey: ['hero'] });
+    },
+  });
+}
+
+export function useRemoveHeroBannerImage() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: () => api.removeHeroBannerImage(),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin', 'hero'] });
+      queryClient.invalidateQueries({ queryKey: ['hero'] });
+    },
   });
 }
 

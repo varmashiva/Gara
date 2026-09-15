@@ -60,6 +60,21 @@ export async function decideStatusHandler(req: Request, res: Response) {
   return sendSuccess(res, product);
 }
 
+export async function adminCreateHandler(req: Request, res: Response) {
+  const product = await productService.adminCreateProduct(req.user!.sub, req.body);
+  return sendSuccess(res, product, 201);
+}
+
+export async function adminUpdateHandler(req: Request, res: Response) {
+  const product = await productService.adminUpdateProduct(req.user!.sub, req.params.id, req.body);
+  return sendSuccess(res, product);
+}
+
+export async function adminDeleteHandler(req: Request, res: Response) {
+  await productService.adminDeleteProduct(req.user!.sub, req.params.id);
+  return sendSuccess(res, { deleted: true });
+}
+
 export async function addImageHandler(req: Request, res: Response) {
   const product = await productService.addProductImage(req.user!.sub, req.params.id, req.file!);
   return sendSuccess(res, product, 201);

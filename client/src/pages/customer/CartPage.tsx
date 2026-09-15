@@ -11,12 +11,12 @@ export function CartPage() {
   const { user } = useAuth();
   const navigate = useNavigate();
 
-  if (isLoading) return <p className="text-gray-500">Loading cart...</p>;
+  if (isLoading) return <p className="text-paper-600">Loading cart...</p>;
   if (!cart || cart.items.length === 0) {
     return (
-      <div className="rounded-lg border border-dashed border-gray-300 p-10 text-center">
-        <p className="text-gray-600">Your cart is empty.</p>
-        <Link to="/products" className="mt-3 inline-block text-brand-600 underline">
+      <div className="rounded-xl2 border border-dashed border-paper-50/20 p-10 text-center">
+        <p className="text-paper-400">Your cart is empty.</p>
+        <Link to="/products" className="btn-pill-primary mt-4 inline-flex">
           Browse products
         </Link>
       </div>
@@ -28,69 +28,76 @@ export function CartPage() {
   return (
     <div className="grid gap-8 lg:grid-cols-3">
       <div className="lg:col-span-2">
-        <h1 className="mb-4 text-2xl font-bold text-brand-700">Your Cart</h1>
-        <ul className="divide-y divide-gray-100 rounded-lg border border-gray-100 bg-white">
+        <h1 className="mb-4 font-display text-2xl font-semibold text-paper-50">Your Cart</h1>
+        <ul className="card divide-y divide-paper-50/10">
           {cart.items.map((item) => (
-            <li key={item.itemId} className="flex items-center gap-4 p-4">
-              {item.image ? (
-                <img src={item.image} alt={item.name} className="h-16 w-16 rounded-md object-cover" />
-              ) : (
-                <ImagePlaceholder className="h-16 w-16 rounded-md" />
-              )}
-              <div className="flex-1">
-                <p className="font-medium text-gray-900">{item.name}</p>
-                {!item.available && <p className="text-sm text-red-600">{item.unavailableReason}</p>}
-                <p className="text-sm text-gray-500">{formatPaise(item.unitPrice)} each</p>
+            <li key={item.itemId} className="flex flex-col gap-3 p-4 sm:flex-row sm:items-center sm:gap-4">
+              <div className="flex flex-1 items-center gap-4">
+                {item.image ? (
+                  <img src={item.image} alt={item.name} className="h-16 w-16 shrink-0 rounded-lg object-cover" />
+                ) : (
+                  <ImagePlaceholder className="h-16 w-16 shrink-0 rounded-lg" />
+                )}
+                <div className="min-w-0 flex-1">
+                  <p className="truncate font-medium text-paper-50">{item.name}</p>
+                  {!item.available && <p className="text-sm text-brand-300">{item.unavailableReason}</p>}
+                  <p className="text-sm text-paper-600">{formatPaise(item.unitPrice)} each</p>
+                </div>
+                <span className="font-medium text-paper-50 sm:hidden">{formatPaise(item.lineTotal)}</span>
               </div>
-              <input
-                type="number"
-                min={1}
-                max={50}
-                value={item.quantity}
-                onChange={(e) =>
-                  updateItem.mutate({ itemId: item.itemId, quantity: Math.max(1, Number(e.target.value)) })
-                }
-                className="w-16 rounded-md border border-gray-300 px-2 py-1 text-sm"
-                aria-label={`Quantity for ${item.name}`}
-              />
-              <span className="w-24 text-right font-medium">{formatPaise(item.lineTotal)}</span>
-              <button
-                onClick={() => removeItem.mutate(item.itemId)}
-                className="text-sm text-red-600 underline"
-                aria-label={`Remove ${item.name}`}
-              >
-                Remove
-              </button>
+              <div className="flex items-center justify-between gap-3 sm:justify-end">
+                <input
+                  type="number"
+                  min={1}
+                  max={50}
+                  value={item.quantity}
+                  onChange={(e) =>
+                    updateItem.mutate({ itemId: item.itemId, quantity: Math.max(1, Number(e.target.value)) })
+                  }
+                  className="input w-16 !py-1.5 text-center"
+                  aria-label={`Quantity for ${item.name}`}
+                />
+                <span className="hidden w-24 text-right font-medium text-paper-50 sm:inline">
+                  {formatPaise(item.lineTotal)}
+                </span>
+                <button
+                  onClick={() => removeItem.mutate(item.itemId)}
+                  className="text-sm font-medium text-brand-300 hover:text-brand-300"
+                  aria-label={`Remove ${item.name}`}
+                >
+                  Remove
+                </button>
+              </div>
             </li>
           ))}
         </ul>
       </div>
 
-      <div className="h-fit rounded-lg border border-gray-100 bg-white p-5">
-        <h2 className="mb-4 text-lg font-semibold">Order Summary</h2>
-        <dl className="space-y-2 text-sm">
+      <div className="card h-fit p-5">
+        <h2 className="mb-4 font-display text-lg font-semibold text-paper-50">Order Summary</h2>
+        <dl className="space-y-2 text-sm text-paper-200">
           <div className="flex justify-between">
-            <dt className="text-gray-600">Subtotal</dt>
+            <dt className="text-paper-400">Subtotal</dt>
             <dd>{formatPaise(cart.subtotal)}</dd>
           </div>
           <div className="flex justify-between">
-            <dt className="text-gray-600">Delivery fee</dt>
+            <dt className="text-paper-400">Delivery fee</dt>
             <dd>{formatPaise(cart.deliveryFee)}</dd>
           </div>
-          <div className="flex justify-between border-t border-gray-100 pt-2 text-base font-semibold">
+          <div className="flex justify-between border-t border-paper-50/10 pt-2 text-base font-semibold text-paper-50">
             <dt>Total</dt>
             <dd>{formatPaise(cart.grandTotal)}</dd>
           </div>
         </dl>
         {hasUnavailable && (
-          <p className="mt-3 text-sm text-red-600">
+          <p className="mt-3 text-sm text-brand-300">
             Remove unavailable items before checking out.
           </p>
         )}
         <button
           onClick={() => (user ? navigate('/checkout') : navigate('/login'))}
           disabled={hasUnavailable}
-          className="mt-4 w-full rounded-md bg-brand-600 px-4 py-2.5 font-medium text-white hover:bg-brand-700 disabled:opacity-50"
+          className="btn-pill-primary mt-4 w-full disabled:opacity-50"
         >
           Proceed to checkout
         </button>

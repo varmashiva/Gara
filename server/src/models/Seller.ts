@@ -14,7 +14,7 @@ export interface SellerDocument extends Document {
   ratingAvg: number;
   ratingCount: number;
   commissionRate: number;
-  applicationId: Types.ObjectId;
+  applicationId?: Types.ObjectId;
   isDeleted: boolean;
   deletedAt?: Date;
   deletedBy?: Types.ObjectId;
@@ -40,7 +40,7 @@ const sellerSchema = new Schema<SellerDocument>(
     ratingAvg: { type: Number, default: 0 },
     ratingCount: { type: Number, default: 0 },
     commissionRate: { type: Number, required: true },
-    applicationId: { type: Schema.Types.ObjectId, ref: 'SellerApplication', required: true },
+    applicationId: { type: Schema.Types.ObjectId, ref: 'SellerApplication' },
     isDeleted: { type: Boolean, default: false },
     deletedAt: { type: Date },
     deletedBy: { type: Schema.Types.ObjectId, ref: 'User' },

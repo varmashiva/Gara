@@ -6,6 +6,11 @@ const envSchema = z.object({
   NODE_ENV: z.enum(['development', 'test', 'production']).default('development'),
   API_VERSION: z.string().default('v1'),
   CLIENT_ORIGIN: z.string().default('http://localhost:5173'),
+  // Only needed when the frontend and API live on different subdomains of
+  // the same site (e.g. garafoods.com + api.garafoods.com) — see the
+  // comment on the CSRF cookie for why. Leave empty for local dev, where
+  // both are effectively the same origin.
+  COOKIE_DOMAIN: z.string().optional().default(''),
 
   MONGODB_URI: z.string().optional().default(''),
 

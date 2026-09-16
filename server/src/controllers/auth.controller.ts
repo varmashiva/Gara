@@ -2,7 +2,7 @@ import { Request, Response } from 'express';
 import * as authService from '../services/auth.service';
 import { mergeGuestCartIntoUser } from '../services/cart.service';
 import { GUEST_CART_COOKIE } from '../middleware/cart.middleware';
-import { setCsrfCookie } from '../middleware/csrf.middleware';
+import { setCsrfCookie, clearCsrfCookie } from '../middleware/csrf.middleware';
 import { sendSuccess } from '../utils/response';
 import { AppError } from '../utils/errors';
 
@@ -79,7 +79,7 @@ export async function logoutHandler(req: Request, res: Response) {
   const token = req.cookies?.[REFRESH_COOKIE];
   await authService.logout(token);
   res.clearCookie(REFRESH_COOKIE, { path: '/api/v1/auth' });
-  res.clearCookie('csrfToken', { path: '/' });
+  clearCsrfCookie(res);
   return sendSuccess(res, { loggedOut: true });
 }
 

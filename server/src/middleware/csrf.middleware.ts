@@ -1,9 +1,17 @@
 import { randomBytes } from 'crypto';
 import { NextFunction, Request, Response } from 'express';
 import { AppError } from '../utils/errors';
+import { env } from '../config/env';
 
 export const CSRF_COOKIE = 'csrfToken';
 const isProd = process.env.NODE_ENV === 'production';
+// e.g. '.garafoods.com' — without this, a cookie set by api.garafoods.com
+// defaults to host-only scope and is invisible to document.cookie on
+// garafoods.com itself, which is exactly where the frontend JS needs to
+// read it from to echo it back as the X-CSRF-Token header. Undefined here
+// (COOKIE_DOMAIN unset) keeps the old host-only behavior for local dev,
+// where frontend and API are effectively the same origin.
+const cookieDomain = env.COOKIE_DOMAIN || undefined;
 
 export function generateCsrfToken(): string {
   return randomBytes(32).toString('hex');
@@ -28,8 +36,19 @@ export function setCsrfCookie(res: Response): string {
     // readable by design, just double-submitted), so there's no downside
     // to sending it everywhere.
     path: '/',
+    domain: cookieDomain,
   });
   return token;
+}
+
+/**
+ * Must mirror setCsrfCookie's path/domain exactly — a clearCookie call
+ * whose options don't match how the cookie was originally set just issues
+ * a no-op Set-Cookie for a different (non-existent) cookie scope, leaving
+ * the real one in place.
+ */
+export function clearCsrfCookie(res: Response): void {
+  res.clearCookie(CSRF_COOKIE, { path: '/', domain: cookieDomain });
 }
 
 /**

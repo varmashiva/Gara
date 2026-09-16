@@ -46,10 +46,10 @@ export async function fetchOrderTracking(id: string) {
 }
 
 export async function createPaymentOrder(orderId: string) {
-  const res = await api.post<{ success: true; data: { providerOrderId: string; amount: number; provider: string } }>(
-    '/payments/create-order',
-    { orderId }
-  );
+  const res = await api.post<{
+    success: true;
+    data: { providerOrderId: string; amount: number; provider: string; keyId?: string };
+  }>('/payments/create-order', { orderId });
   return res.data.data;
 }
 

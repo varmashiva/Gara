@@ -17,9 +17,15 @@ export async function createPaymentOrder(userId: string, orderId: string) {
     throw AppError.conflict('This order is not awaiting payment', 'INVALID_ORDER_STATE');
   }
 
+  // Razorpay's checkout.js widget (Checkout.js) needs the public key_id
+  // client-side to open the payment popup — that's a publishable
+  // identifier, not the secret, safe to hand to the browser. Only returned
+  // for the real provider; the mock provider has no widget to open.
+  const keyId = env.PAYMENT_PROVIDER_MODE === 'real' ? env.PAYMENT_KEY : undefined;
+
   const existing = await Payment.findOne({ orderId: order._id, status: 'PENDING' });
   if (existing) {
-    return { providerOrderId: existing.providerOrderId, amount: existing.amount, provider: existing.provider };
+    return { providerOrderId: existing.providerOrderId, amount: existing.amount, provider: existing.provider, keyId };
   }
 
   const provider = env.PAYMENT_PROVIDER_MODE === 'real' ? 'razorpay' : 'mock';
@@ -36,7 +42,7 @@ export async function createPaymentOrder(userId: string, orderId: string) {
     status: 'PENDING',
   });
 
-  return { providerOrderId, amount: order.grandTotal, provider };
+  return { providerOrderId, amount: order.grandTotal, provider, keyId };
 }
 
 async function applyPaymentUpdate(

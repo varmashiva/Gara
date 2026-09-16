@@ -101,3 +101,19 @@ export function useDecideReturn() {
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['admin', 'returns'] }),
   });
 }
+
+export function useAdminOrderSummary() {
+  return useQuery({ queryKey: ['admin', 'orders', 'summary'], queryFn: api.fetchAdminOrderSummary });
+}
+
+export function useAdminOrders(status?: string) {
+  return useQuery({ queryKey: ['admin', 'orders', status], queryFn: () => api.fetchAdminOrders(status) });
+}
+
+export function useAdminOrder(id: string | undefined) {
+  return useQuery({
+    queryKey: ['admin', 'order', id],
+    queryFn: () => api.fetchAdminOrder(id!),
+    enabled: !!id,
+  });
+}

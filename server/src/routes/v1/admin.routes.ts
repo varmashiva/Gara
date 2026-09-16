@@ -8,6 +8,7 @@ import * as settlementController from '../../controllers/settlement.controller';
 import * as reviewController from '../../controllers/review.controller';
 import * as couponController from '../../controllers/coupon.controller';
 import * as returnController from '../../controllers/returnRequest.controller';
+import * as orderController from '../../controllers/order.controller';
 import * as userController from '../../controllers/user.controller';
 import * as auditLogController from '../../controllers/auditLog.controller';
 import { requireAuth } from '../../middleware/auth.middleware';
@@ -43,6 +44,10 @@ async function ensureHouseSeller(req: Request, _res: Response, next: NextFunctio
 }
 
 adminRouter.get('/audit-logs', asyncHandler(auditLogController.listHandler));
+
+adminRouter.get('/orders/summary', asyncHandler(orderController.adminSummaryHandler));
+adminRouter.get('/orders', asyncHandler(orderController.adminListHandler));
+adminRouter.get('/orders/:id', asyncHandler(orderController.adminGetHandler));
 
 adminRouter.get('/hero', asyncHandler(heroBannerController.getHandler));
 adminRouter.patch('/hero', validateBody(updateHeroBannerSchema), asyncHandler(heroBannerController.updateHandler));

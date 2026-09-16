@@ -356,3 +356,45 @@ export async function getOrderTracking(userId: string, orderId: string) {
   );
   return { order, fulfillments };
 }
+
+export async function listAllOrdersForAdmin(status?: string) {
+  const filter: Record<string, unknown> = {};
+  if (status) filter.orderStatus = status;
+  return Order.find(filter)
+    .populate('customerId', 'username email firstName')
+    .sort({ createdAt: -1 })
+    .limit(200);
+}
+
+export async function getOrderForAdmin(orderId: string) {
+  const order = await Order.findById(orderId).populate('customerId', 'username email firstName');
+  if (!order) {
+    throw AppError.notFound('Order not found', 'ORDER_NOT_FOUND');
+  }
+  const fulfillments = await SellerFulfillment.find({ orderId: order._id });
+  return { order, fulfillments };
+}
+
+/**
+ * "Revenue" here means money actually collected — orders that reached PAID
+ * or beyond, minus refunds — not gross order value including unpaid/failed
+ * carts, which would overstate what the business actually took in.
+ */
+export async function getOrderSummaryForAdmin() {
+  const [totals, byStatus] = await Promise.all([
+    Order.aggregate([
+      { $match: { paymentStatus: { $in: ['SUCCESS', 'PARTIALLY_REFUNDED'] } } },
+      { $group: { _id: null, totalRevenue: { $sum: '$grandTotal' }, paidOrders: { $sum: 1 } } },
+    ]),
+    Order.aggregate([{ $group: { _id: '$orderStatus', count: { $sum: 1 } } }]),
+  ]);
+
+  const totalOrders = byStatus.reduce((sum, row) => sum + row.count, 0);
+
+  return {
+    totalOrders,
+    totalRevenue: totals[0]?.totalRevenue ?? 0,
+    paidOrders: totals[0]?.paidOrders ?? 0,
+    ordersByStatus: Object.fromEntries(byStatus.map((row) => [row._id, row.count])),
+  };
+}

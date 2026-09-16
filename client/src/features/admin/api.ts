@@ -1,6 +1,8 @@
 import { api } from '@/api/axios';
 import type { Product } from '@/types/product';
 import type { HeroBanner } from '@/types/hero';
+import type { AdminOrder, OrderSummary } from '@/types/order';
+import type { OrderTrackingFulfillment } from '@/features/orders/api';
 
 export type AdminProduct = Product;
 
@@ -112,5 +114,25 @@ export async function fetchAdminReturns() {
 
 export async function decideReturn(id: string, decision: 'APPROVED' | 'REJECTED', notes?: string) {
   const res = await api.patch(`/admin/returns/${id}/decision`, { decision, notes });
+  return res.data.data;
+}
+
+export async function fetchAdminOrderSummary() {
+  const res = await api.get<{ success: true; data: OrderSummary }>('/admin/orders/summary');
+  return res.data.data;
+}
+
+export async function fetchAdminOrders(status?: string) {
+  const res = await api.get<{ success: true; data: AdminOrder[] }>('/admin/orders', {
+    params: status ? { status } : undefined,
+  });
+  return res.data.data;
+}
+
+export async function fetchAdminOrder(id: string) {
+  const res = await api.get<{
+    success: true;
+    data: { order: AdminOrder; fulfillments: OrderTrackingFulfillment[] };
+  }>(`/admin/orders/${id}`);
   return res.data.data;
 }

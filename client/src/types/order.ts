@@ -36,3 +36,21 @@ export type Order = {
   paidAt?: string;
   createdAt: string;
 };
+
+export type OrderCustomer = {
+  _id: string;
+  username: string;
+  email: string;
+  firstName: string;
+};
+
+export type AdminOrder = Order & {
+  customerId: OrderCustomer;
+};
+
+export type OrderSummary = {
+  totalOrders: number;
+  totalRevenue: number;
+  paidOrders: number;
+  ordersByStatus: Record<string, number>;
+};

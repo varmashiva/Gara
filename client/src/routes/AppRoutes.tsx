@@ -11,6 +11,8 @@ import { OrdersPage } from '@/pages/customer/OrdersPage';
 import { OrderDetailPage } from '@/pages/customer/OrderDetailPage';
 import { AdminHeroPage } from '@/pages/admin/AdminHeroPage';
 import { AdminProductsPage } from '@/pages/admin/AdminProductsPage';
+import { AdminOrdersPage } from '@/pages/admin/AdminOrdersPage';
+import { AdminOrderDetailPage } from '@/pages/admin/AdminOrderDetailPage';
 import { AdminReturnsPage } from '@/pages/admin/AdminReturnsPage';
 import { AdminCouponsPage } from '@/pages/admin/AdminCouponsPage';
 import { AdminSettlementsPage } from '@/pages/admin/AdminSettlementsPage';
@@ -38,7 +40,9 @@ export function AppRoutes() {
 
       <Route path="/admin" element={<AdminRoute />}>
         <Route element={<AdminLayout />}>
-          <Route index element={<Navigate to="products" replace />} />
+          <Route index element={<Navigate to="orders" replace />} />
+          <Route path="orders" element={<AdminOrdersPage />} />
+          <Route path="orders/:id" element={<AdminOrderDetailPage />} />
           <Route path="hero" element={<AdminHeroPage />} />
           <Route path="products" element={<AdminProductsPage />} />
           <Route path="returns" element={<AdminReturnsPage />} />

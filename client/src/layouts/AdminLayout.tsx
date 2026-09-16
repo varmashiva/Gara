@@ -6,6 +6,9 @@ export function AdminLayout() {
       <div className="mb-6 flex items-center justify-between border-b border-paper-50/15 pb-3">
         <h1 className="text-xl font-bold text-brand-300">Admin Dashboard</h1>
         <nav className="flex gap-4 text-sm">
+          <Link to="/admin/orders" className="text-paper-300 hover:text-brand-300">
+            Orders
+          </Link>
           <Link to="/admin/hero" className="text-paper-300 hover:text-brand-300">
             Home banner
           </Link>

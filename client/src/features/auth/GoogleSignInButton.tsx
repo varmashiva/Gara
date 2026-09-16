@@ -22,7 +22,7 @@ const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID;
  * CLIENT_ID) — this app runs fully on username/password without it, and a
  * misconfigured button is worse than no button.
  */
-export function GoogleSignInButton() {
+export function GoogleSignInButton({ redirectTo = '/' }: { redirectTo?: string }) {
   const { loginWithGoogle } = useAuth();
   const navigate = useNavigate();
   const containerRef = useRef<HTMLDivElement>(null);
@@ -43,7 +43,7 @@ export function GoogleSignInButton() {
         callback: async (resp) => {
           try {
             await loginWithGoogle(resp.credential);
-            navigate('/');
+            navigate(redirectTo);
           } catch {
             // AuthContext state is unchanged on failure; user stays on the
             // login/register page and can retry or use password auth.
@@ -61,7 +61,7 @@ export function GoogleSignInButton() {
     return () => {
       cancelled = true;
     };
-  }, [loginWithGoogle, navigate]);
+  }, [loginWithGoogle, navigate, redirectTo]);
 
   if (!GOOGLE_CLIENT_ID) return null;
 

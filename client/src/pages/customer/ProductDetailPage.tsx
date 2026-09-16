@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { useProduct } from '@/features/products/hooks';
 import { useAddToCart } from '@/features/cart/hooks';
+import { useAuth } from '@/features/auth/AuthContext';
 import { formatPaise } from '@/utils/currency';
 import { VegBadge } from '@/components/common/VegBadge';
 import { ImagePlaceholder } from '@/components/common/ImagePlaceholder';
@@ -10,6 +11,9 @@ export function ProductDetailPage() {
   const { id } = useParams<{ id: string }>();
   const { data: product, isLoading, isError } = useProduct(id);
   const addToCart = useAddToCart();
+  const { user } = useAuth();
+  const navigate = useNavigate();
+  const location = useLocation();
   const [quantity, setQuantity] = useState(1);
   const [addedMessage, setAddedMessage] = useState<string | null>(null);
   const [activeImage, setActiveImage] = useState(0);
@@ -26,6 +30,10 @@ export function ProductDetailPage() {
   const selectedImage = images[activeImage] ?? images[0];
 
   async function handleAddToCart() {
+    if (!user) {
+      navigate('/login', { state: { from: location.pathname } });
+      return;
+    }
     setAddedMessage(null);
     try {
       await addToCart.mutateAsync({ productId: product!._id, quantity });

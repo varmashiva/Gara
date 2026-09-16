@@ -1,7 +1,7 @@
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate, useLocation, Link } from 'react-router-dom';
 import { useState } from 'react';
 import { useAuth } from '@/features/auth/AuthContext';
 import { GoogleSignInButton } from '@/features/auth/GoogleSignInButton';
@@ -16,6 +16,8 @@ type FormValues = z.infer<typeof schema>;
 export function LoginPage() {
   const { login } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
+  const redirectTo = (location.state as { from?: string } | null)?.from ?? '/';
   const [serverError, setServerError] = useState<string | null>(null);
   const {
     register,
@@ -27,7 +29,7 @@ export function LoginPage() {
     setServerError(null);
     try {
       await login(values.email, values.password);
-      navigate('/');
+      navigate(redirectTo);
     } catch (err: any) {
       setServerError(err?.response?.data?.message ?? 'Login failed');
     }
@@ -36,7 +38,10 @@ export function LoginPage() {
   return (
     <div className="mx-auto flex min-h-[70vh] max-w-sm flex-col justify-center px-4">
       <p className="text-sm font-semibold uppercase tracking-widest text-brand-300">Sign in</p>
-      <h1 className="mb-6 mt-1 font-display text-3xl font-semibold text-paper-50">Welcome back</h1>
+      <h1 className={`font-display text-3xl font-semibold text-paper-50 mt-1 ${location.state ? '' : 'mb-6'}`}>
+        Welcome back
+      </h1>
+      {location.state && <p className="mb-6 mt-1 text-sm text-paper-400">Sign in to continue.</p>}
       <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-4" noValidate>
         <div>
           <label htmlFor="email" className="mb-1 block text-sm font-medium text-paper-200">
@@ -90,7 +95,7 @@ export function LoginPage() {
             or
             <span className="h-px flex-1 bg-paper-50/15" />
           </div>
-          <GoogleSignInButton />
+          <GoogleSignInButton redirectTo={redirectTo} />
         </>
       )}
       <p className="mt-4 text-sm text-paper-400">

@@ -1,6 +1,7 @@
 import { api } from '@/api/axios';
-import type { Product } from '@/types/product';
+import type { Product, Category } from '@/types/product';
 import type { HeroBanner } from '@/types/hero';
+import type { HomeHighlight, HomeHighlightItem } from '@/types/homeHighlight';
 import type { AdminOrder, OrderSummary } from '@/types/order';
 import type { OrderTrackingFulfillment } from '@/features/orders/api';
 
@@ -36,6 +37,43 @@ export async function uploadHeroBannerImage(file: File) {
 export async function removeHeroBannerImage() {
   const res = await api.delete<{ success: true; data: HeroBanner }>('/admin/hero/image');
   return res.data.data;
+}
+
+export async function fetchAdminHomeHighlight() {
+  const res = await api.get<{ success: true; data: HomeHighlight }>('/admin/home-highlights');
+  return res.data.data;
+}
+
+export async function updateHomeHighlight(items: HomeHighlightItem[]) {
+  const res = await api.patch<{ success: true; data: HomeHighlight }>('/admin/home-highlights', { items });
+  return res.data.data;
+}
+
+export type AdminCategory = Category & { isActive: boolean };
+
+export type CategoryEdits = {
+  name?: string;
+  icon?: string;
+  isActive?: boolean;
+};
+
+export async function fetchAdminCategories() {
+  const res = await api.get<{ success: true; data: AdminCategory[] }>('/admin/categories');
+  return res.data.data;
+}
+
+export async function createCategory(payload: { name: string; icon?: string }) {
+  const res = await api.post<{ success: true; data: AdminCategory }>('/categories', payload);
+  return res.data.data;
+}
+
+export async function updateCategory(id: string, edits: CategoryEdits) {
+  const res = await api.patch<{ success: true; data: AdminCategory }>(`/categories/${id}`, edits);
+  return res.data.data;
+}
+
+export async function deleteCategory(id: string) {
+  await api.delete(`/categories/${id}`);
 }
 
 export type AdminReturn = {

@@ -1,5 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import * as api from './api';
+import type { HomeHighlightItem } from '@/types/homeHighlight';
 
 export function useAdminProducts(status?: string) {
   return useQuery({ queryKey: ['admin', 'products', status], queryFn: () => api.fetchAdminProducts(status) });
@@ -87,6 +88,54 @@ export function useRemoveHeroBannerImage() {
       queryClient.invalidateQueries({ queryKey: ['admin', 'hero'] });
       queryClient.invalidateQueries({ queryKey: ['hero'] });
     },
+  });
+}
+
+export function useAdminHomeHighlight() {
+  return useQuery({ queryKey: ['admin', 'home-highlights'], queryFn: api.fetchAdminHomeHighlight });
+}
+
+export function useUpdateHomeHighlight() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (items: HomeHighlightItem[]) => api.updateHomeHighlight(items),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin', 'home-highlights'] });
+      queryClient.invalidateQueries({ queryKey: ['home-highlights'] });
+    },
+  });
+}
+
+export function useAdminCategories() {
+  return useQuery({ queryKey: ['admin', 'categories'], queryFn: api.fetchAdminCategories });
+}
+
+function invalidateCategories(queryClient: ReturnType<typeof useQueryClient>) {
+  queryClient.invalidateQueries({ queryKey: ['admin', 'categories'] });
+  queryClient.invalidateQueries({ queryKey: ['categories'] });
+}
+
+export function useCreateCategory() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (payload: { name: string; icon?: string }) => api.createCategory(payload),
+    onSuccess: () => invalidateCategories(queryClient),
+  });
+}
+
+export function useUpdateCategory() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, edits }: { id: string; edits: api.CategoryEdits }) => api.updateCategory(id, edits),
+    onSuccess: () => invalidateCategories(queryClient),
+  });
+}
+
+export function useDeleteCategory() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (id: string) => api.deleteCategory(id),
+    onSuccess: () => invalidateCategories(queryClient),
   });
 }
 

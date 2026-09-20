@@ -7,6 +7,12 @@ export async function listCategories() {
   return Category.find({ isActive: true, isDeleted: false }).sort({ name: 1 }).lean();
 }
 
+// Admin management view — includes inactive categories (e.g. ones hidden
+// from the storefront but not deleted) so they can be reactivated.
+export async function listAllCategoriesForAdmin() {
+  return Category.find({ isDeleted: false }).sort({ name: 1 }).lean();
+}
+
 export async function createCategory(input: CreateCategoryInput) {
   const slug = slugify(input.name);
   const exists = await Category.exists({ slug });

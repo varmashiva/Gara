@@ -10,6 +10,7 @@ import { CheckoutPage } from '@/pages/customer/CheckoutPage';
 import { OrdersPage } from '@/pages/customer/OrdersPage';
 import { OrderDetailPage } from '@/pages/customer/OrderDetailPage';
 import { AdminHeroPage } from '@/pages/admin/AdminHeroPage';
+import { AdminCategoriesPage } from '@/pages/admin/AdminCategoriesPage';
 import { AdminProductsPage } from '@/pages/admin/AdminProductsPage';
 import { AdminOrdersPage } from '@/pages/admin/AdminOrdersPage';
 import { AdminOrderDetailPage } from '@/pages/admin/AdminOrderDetailPage';
@@ -44,6 +45,7 @@ export function AppRoutes() {
           <Route path="orders" element={<AdminOrdersPage />} />
           <Route path="orders/:id" element={<AdminOrderDetailPage />} />
           <Route path="hero" element={<AdminHeroPage />} />
+          <Route path="categories" element={<AdminCategoriesPage />} />
           <Route path="products" element={<AdminProductsPage />} />
           <Route path="returns" element={<AdminReturnsPage />} />
           <Route path="coupons" element={<AdminCouponsPage />} />

@@ -10,7 +10,10 @@ export function AdminLayout() {
             Orders
           </Link>
           <Link to="/admin/hero" className="text-paper-300 hover:text-brand-300">
-            Home banner
+            Home content
+          </Link>
+          <Link to="/admin/categories" className="text-paper-300 hover:text-brand-300">
+            Categories
           </Link>
           <Link to="/admin/products" className="text-paper-300 hover:text-brand-300">
             Products

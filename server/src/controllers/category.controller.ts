@@ -7,6 +7,11 @@ export async function listHandler(_req: Request, res: Response) {
   return sendSuccess(res, categories);
 }
 
+export async function adminListHandler(_req: Request, res: Response) {
+  const categories = await categoryService.listAllCategoriesForAdmin();
+  return sendSuccess(res, categories);
+}
+
 export async function createHandler(req: Request, res: Response) {
   const category = await categoryService.createCategory(req.body);
   return sendSuccess(res, category, 201);

@@ -1,6 +1,8 @@
 import { NextFunction, Request, Response, Router } from 'express';
 import * as productController from '../../controllers/product.controller';
 import * as heroBannerController from '../../controllers/heroBanner.controller';
+import * as homeHighlightController from '../../controllers/homeHighlight.controller';
+import * as categoryController from '../../controllers/category.controller';
 import * as fulfillmentController from '../../controllers/fulfillment.controller';
 import * as earningsController from '../../controllers/earnings.controller';
 import * as pickupLocationController from '../../controllers/pickupLocation.controller';
@@ -17,6 +19,7 @@ import { validateBody } from '../../middleware/validation.middleware';
 import { uploadSingleImage } from '../../middleware/upload.middleware';
 import { createProductSchema, updateProductSchema, productStatusDecisionSchema } from '../../schemas/product.schema';
 import { updateHeroBannerSchema } from '../../schemas/heroBanner.schema';
+import { updateHomeHighlightSchema } from '../../schemas/homeHighlight.schema';
 import { pickupLocationSchema, pickupLocationUpdateSchema } from '../../schemas/seller.schema';
 import { updateFulfillmentStatusSchema } from '../../schemas/fulfillment.schema';
 import { markPayoutStatusSchema } from '../../schemas/settlement.schema';
@@ -57,6 +60,15 @@ adminRouter.post(
   asyncHandler(heroBannerController.updateImageHandler)
 );
 adminRouter.delete('/hero/image', asyncHandler(heroBannerController.removeImageHandler));
+
+adminRouter.get('/home-highlights', asyncHandler(homeHighlightController.getHandler));
+adminRouter.patch(
+  '/home-highlights',
+  validateBody(updateHomeHighlightSchema),
+  asyncHandler(homeHighlightController.updateHandler)
+);
+
+adminRouter.get('/categories', asyncHandler(categoryController.adminListHandler));
 
 adminRouter.get('/users', asyncHandler(userController.listHandler));
 adminRouter.patch(

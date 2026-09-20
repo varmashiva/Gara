@@ -1,15 +1,15 @@
 import { Link } from 'react-router-dom';
-import { Leaf, Truck, Sparkles, Check, ArrowUpRight } from 'lucide-react';
+import { Check, ArrowUpRight } from 'lucide-react';
 import { useProducts, useCategories } from '@/features/products/hooks';
 import { useHeroBanner } from '@/features/hero/hooks';
+import { useHomeHighlight } from '@/features/homeHighlights/hooks';
 import { ProductCard } from '@/components/product/ProductCard';
 
 const DEFAULT_HERO_IMAGE = 'https://images.pexels.com/photos/19151506/pexels-photo-19151506.jpeg?auto=compress&cs=tinysrgb&w=1200';
 
-const VALUE_PROPS = [
-  { icon: Leaf, label: 'Small-batch & fresh' },
-  { icon: Truck, label: 'Delivered near you' },
-  { icon: Sparkles, label: 'Real home kitchens' },
+const DEFAULT_HIGHLIGHT_ITEMS = [
+  { icon: '🌿', label: 'Small-batch & fresh' },
+  { icon: '🚚', label: 'Delivered near you' },
 ];
 
 const QUALITY_POINTS = ['Made fresh to order', 'Checked before it ships', 'No preservatives added'];
@@ -47,6 +47,8 @@ export function HomePage() {
   const { data } = useProducts({ page: 1, limit: 8, sort: 'newest' });
   const { data: categories } = useCategories();
   const { data: hero } = useHeroBanner();
+  const { data: highlight } = useHomeHighlight();
+  const highlightItems = highlight?.items.length ? highlight.items : DEFAULT_HIGHLIGHT_ITEMS;
 
   return (
     <div className="flex flex-col gap-12 sm:gap-20 md:gap-24">
@@ -101,12 +103,12 @@ export function HomePage() {
             <span className="font-display text-2xl font-bold text-paper-50 sm:text-3xl">{data?.pagination.total ?? '—'}+</span>
             <span className="mt-1 text-xs text-paper-400 sm:text-sm">Menu items</span>
           </div>
-          {VALUE_PROPS.slice(0, 2).map(({ icon: Icon, label }) => (
+          {highlightItems.map(({ icon, label }, i) => (
             <div
-              key={label}
+              key={`${label}-${i}`}
               className="flex flex-col justify-center gap-2 rounded-xl2 border border-paper-50/10 bg-surface-50 p-4 shadow-sm sm:gap-3 sm:p-6"
             >
-              <Icon size={20} className="text-brand-500" />
+              <span className="text-xl leading-none">{icon}</span>
               <span className="text-xs font-medium text-paper-200 sm:text-sm">{label}</span>
             </div>
           ))}

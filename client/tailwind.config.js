@@ -56,7 +56,11 @@ export default {
         },
       },
       fontFamily: {
-        display: ['"Plus Jakarta Sans"', 'ui-sans-serif', 'system-ui', 'sans-serif'],
+        // A warm, soft-serif display face (used for h1-h3, product names,
+        // prices) — pairs with the maroon/cream/gold palette and gives the
+        // "homemade, crafted" feel some visual distinction from the clean
+        // sans everywhere else, instead of one typeface doing both jobs.
+        display: ['"Fraunces"', 'ui-serif', 'Georgia', 'serif'],
         sans: ['"Plus Jakarta Sans"', 'ui-sans-serif', 'system-ui', 'sans-serif'],
       },
       borderRadius: {

@@ -1,4 +1,5 @@
 import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 import { setAccessToken } from '@/api/axios';
 import { loginRequest, logoutRequest, meRequest, registerRequest, googleLoginRequest, PublicUser } from '@/api/endpoints';
 
@@ -22,6 +23,7 @@ const AuthContext = createContext<AuthContextValue | null>(null);
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<PublicUser | null>(null);
   const [loading, setLoading] = useState(true);
+  const queryClient = useQueryClient();
 
   useEffect(() => {
     // Attempt silent refresh on load so a returning user (with a valid
@@ -33,6 +35,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     try {
       const me = await meRequest();
       setUser(me);
+      // useCart() fires its own query on mount in parallel with this
+      // bootstrap — on a fresh page load that request goes out before the
+      // access token above is restored, so the server treats it as a
+      // guest and hands back an empty cart, which react-query then caches
+      // as if it were the real one. Now that we know a token exists,
+      // force a refetch so it picks up the actual signed-in cart.
+      queryClient.invalidateQueries({ queryKey: ['cart'] });
     } catch {
       setUser(null);
     } finally {

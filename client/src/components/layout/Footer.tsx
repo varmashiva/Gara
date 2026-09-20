@@ -4,12 +4,11 @@ import { Globe, Mail, Phone, MapPin } from 'lucide-react';
 const LOCATIONS = [
   {
     label: 'Tadepalligudem',
-    address:
-      'Mamdi Thota, Indhira Nagar, Kondalamma Gudi Road, near Sri Surya Milk & Ice Cream Shop, Tadepalligudem 534101',
+    address: '534101',
   },
   {
     label: 'Bengaluru',
-    address: 'Adi Residency, Green House Layout, 3rd Cross, Doddathoguru, E-City Phase 1, Bengaluru 560100',
+    address: '560100',
   },
 ];
 

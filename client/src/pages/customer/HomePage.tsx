@@ -162,8 +162,8 @@ export function HomePage() {
       <div id="bento" className="grid gap-5 md:grid-cols-2">
         <div className="relative min-h-[320px] overflow-hidden rounded-xl2 shadow-sm">
           <img
-            src="https://images.pexels.com/photos/34711401/pexels-photo-34711401.jpeg?auto=compress&cs=tinysrgb&w=1200"
-            alt="Homemade pickles preserved in glass jars on a kitchen counter"
+            src="https://images.pexels.com/photos/37330104/pexels-photo-37330104.jpeg?auto=compress&cs=tinysrgb&w=1200"
+            alt="Hands preparing fresh ingredients on a cutting board in a home kitchen"
             className="h-full w-full object-cover"
           />
           <div className="absolute inset-0 bg-gradient-to-t from-surface-950/85 via-surface-950/15 to-transparent" />

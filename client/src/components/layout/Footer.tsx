@@ -112,7 +112,7 @@ export function Footer() {
         </div>
 
         <div className="mt-12 flex flex-col items-start justify-between gap-2 border-t border-white/10 pt-6 text-xs text-white/50 sm:flex-row sm:items-center">
-          <span>© {new Date().getFullYear()} Gara. All rights reserved.</span>
+          <span>© 2024 Gara. All rights reserved.</span>
           <span>Made with a smirk, for home kitchens everywhere.</span>
         </div>
       </div>

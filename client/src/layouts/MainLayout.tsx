@@ -5,6 +5,7 @@ import { useAuth } from '@/features/auth/AuthContext';
 import { useCart } from '@/features/cart/hooks';
 import { NotificationBell } from '@/components/layout/NotificationBell';
 import { Footer } from '@/components/layout/Footer';
+import { WhatsAppFloatingButton } from '@/components/layout/WhatsAppFloatingButton';
 
 export function MainLayout() {
   const { user, logout, loading } = useAuth();
@@ -147,6 +148,7 @@ export function MainLayout() {
         <Outlet />
       </main>
       <Footer />
+      <WhatsAppFloatingButton />
     </div>
   );
 }

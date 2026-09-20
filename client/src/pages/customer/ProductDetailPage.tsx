@@ -14,7 +14,11 @@ export function ProductDetailPage() {
   const { user } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
-  const [quantity, setQuantity] = useState(1);
+  // Kept as a string so the field can be freely edited (including
+  // briefly empty while retyping) without snapping back to 1 on every
+  // keystroke — only clamped when actually used (add-to-cart or blur).
+  const [quantityInput, setQuantityInput] = useState('1');
+  const quantity = Math.max(1, Math.trunc(Number(quantityInput)) || 1);
   const [addedMessage, setAddedMessage] = useState<string | null>(null);
   const [activeImage, setActiveImage] = useState(0);
 
@@ -121,8 +125,9 @@ export function ProductDetailPage() {
             type="number"
             min={1}
             max={Math.max(product.inventory.availableStock, 1)}
-            value={quantity}
-            onChange={(e) => setQuantity(Math.max(1, Number(e.target.value)))}
+            value={quantityInput}
+            onChange={(e) => setQuantityInput(e.target.value)}
+            onBlur={() => setQuantityInput(String(quantity))}
             className="input w-20"
             disabled={outOfStock}
           />

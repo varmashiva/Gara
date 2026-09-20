@@ -1,8 +1,55 @@
+import { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useCart, useUpdateCartItem, useRemoveCartItem } from '@/features/cart/hooks';
 import { formatPaise } from '@/utils/currency';
 import { useAuth } from '@/features/auth/AuthContext';
 import { ImagePlaceholder } from '@/components/common/ImagePlaceholder';
+import type { CartItem } from '@/types/cart';
+
+// Local draft, committed onBlur/Enter instead of mutating on every
+// keystroke — item.quantity comes from a server round-trip, so a
+// controlled input bound straight to it fights whatever the user is
+// mid-typing (clearing the field to retype snaps back to 1, and a slow
+// response can overwrite a later keystroke). Not tracked while focused,
+// so a quantity update arriving from elsewhere doesn't yank the field
+// out from under an in-progress edit.
+function QuantityInput({ item, onCommit }: { item: CartItem; onCommit: (quantity: number) => void }) {
+  const [draft, setDraft] = useState(String(item.quantity));
+  const [focused, setFocused] = useState(false);
+
+  useEffect(() => {
+    if (!focused) setDraft(String(item.quantity));
+  }, [item.quantity, focused]);
+
+  function commit() {
+    const parsed = Math.min(50, Math.max(1, Math.trunc(Number(draft)) || 1));
+    setDraft(String(parsed));
+    if (parsed !== item.quantity) onCommit(parsed);
+  }
+
+  return (
+    <input
+      type="number"
+      min={1}
+      max={50}
+      value={draft}
+      onFocus={() => setFocused(true)}
+      onChange={(e) => setDraft(e.target.value)}
+      onBlur={() => {
+        setFocused(false);
+        commit();
+      }}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter') {
+          e.preventDefault();
+          (e.target as HTMLInputElement).blur();
+        }
+      }}
+      className="input w-16 !py-1.5 text-center"
+      aria-label={`Quantity for ${item.name}`}
+    />
+  );
+}
 
 export function CartPage() {
   const { data: cart, isLoading } = useCart();
@@ -46,16 +93,9 @@ export function CartPage() {
                 <span className="font-medium text-paper-50 sm:hidden">{formatPaise(item.lineTotal)}</span>
               </div>
               <div className="flex items-center justify-between gap-3 sm:justify-end">
-                <input
-                  type="number"
-                  min={1}
-                  max={50}
-                  value={item.quantity}
-                  onChange={(e) =>
-                    updateItem.mutate({ itemId: item.itemId, quantity: Math.max(1, Number(e.target.value)) })
-                  }
-                  className="input w-16 !py-1.5 text-center"
-                  aria-label={`Quantity for ${item.name}`}
+                <QuantityInput
+                  item={item}
+                  onCommit={(quantity) => updateItem.mutate({ itemId: item.itemId, quantity })}
                 />
                 <span className="hidden w-24 text-right font-medium text-paper-50 sm:inline">
                   {formatPaise(item.lineTotal)}

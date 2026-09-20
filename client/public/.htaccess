@@ -1,0 +1,11 @@
+RewriteEngine On
+RewriteBase /
+
+# Serve real files/directories (assets, etc.) as-is.
+RewriteCond %{REQUEST_FILENAME} -f [OR]
+RewriteCond %{REQUEST_FILENAME} -d
+RewriteRule ^ - [L]
+
+# Everything else is a client-side React Router route — fall back to
+# index.html so a direct load or refresh doesn't 404.
+RewriteRule ^ index.html [L]

@@ -1,11 +1,39 @@
 import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { useQueryClient } from '@tanstack/react-query';
+import { Check } from 'lucide-react';
 import { useOrderTracking } from '@/features/orders/hooks';
 import { createPaymentOrder, simulatePaymentComplete } from '@/features/orders/api';
 import { formatPaise } from '@/utils/currency';
 import { loadRazorpayCheckoutScript } from '@/utils/razorpay';
 import { useAuth } from '@/features/auth/AuthContext';
+
+// A brief, one-time entrance (this mounts once when an order flips to PAID,
+// not on every render) — fits the moment without being gratuitous.
+function PaymentConfirmedBanner() {
+  const [shown, setShown] = useState(false);
+
+  useEffect(() => {
+    const raf = requestAnimationFrame(() => setShown(true));
+    return () => cancelAnimationFrame(raf);
+  }, []);
+
+  return (
+    <div
+      className={`mb-6 flex items-start gap-3 rounded-xl2 border border-green-600/20 bg-green-50 p-4 shadow-[0_1px_2px_rgba(22,101,52,0.06),0_8px_20px_-12px_rgba(22,101,52,0.18)] transition-all duration-300 ease-[cubic-bezier(0.23,1,0.32,1)] ${
+        shown ? 'translate-y-0 scale-100 opacity-100' : 'translate-y-1 scale-[0.97] opacity-0'
+      }`}
+    >
+      <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-green-600 text-white">
+        <Check className="h-4 w-4" strokeWidth={3} />
+      </span>
+      <div>
+        <p className="text-sm font-semibold text-green-900">Payment confirmed</p>
+        <p className="text-sm text-green-800/80">Your order has been sent to the kitchen for preparation.</p>
+      </div>
+    </div>
+  );
+}
 
 const STATUS_LABELS: Record<string, string> = {
   PAYMENT_PENDING: 'Awaiting payment',
@@ -205,11 +233,7 @@ export function OrderDetailPage() {
         </div>
       )}
 
-      {order.orderStatus === 'PAID' && fulfillments.length > 0 && (
-        <div className="mb-6 rounded-xl2 border border-green-500/30 bg-green-500/10 p-4 text-sm text-green-300">
-          Payment confirmed. Your order has been sent to the kitchen for preparation.
-        </div>
-      )}
+      {order.orderStatus === 'PAID' && fulfillments.length > 0 && <PaymentConfirmedBanner />}
 
       {fulfillments.length > 0 && (
         <div>

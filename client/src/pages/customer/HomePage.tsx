@@ -4,6 +4,7 @@ import { useProducts, useCategories } from '@/features/products/hooks';
 import { useHeroBanner } from '@/features/hero/hooks';
 import { useHomeHighlight } from '@/features/homeHighlights/hooks';
 import { ProductCard } from '@/components/product/ProductCard';
+import { Seo } from '@/components/common/Seo';
 
 const DEFAULT_HERO_IMAGE = 'https://images.pexels.com/photos/19151506/pexels-photo-19151506.jpeg?auto=compress&cs=tinysrgb&w=1200';
 
@@ -52,6 +53,10 @@ export function HomePage() {
 
   return (
     <div className="flex flex-col gap-12 sm:gap-20 md:gap-24">
+      <Seo
+        title="Gara"
+        description="Gara brings you homemade pickles, sweets, and snacks made in real kitchens, in small batches, delivered fresh to your door."
+      />
       <div className="grid overflow-hidden rounded-xl2 shadow-[0_1px_2px_rgba(61,10,17,0.04),0_24px_48px_-16px_rgba(61,10,17,0.25)] md:grid-cols-2">
         <div className="flex flex-col justify-between gap-6 bg-surface-950 p-6 sm:gap-10 sm:p-8 md:p-12">
           <div>

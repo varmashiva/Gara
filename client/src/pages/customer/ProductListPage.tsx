@@ -3,6 +3,7 @@ import { useSearchParams } from 'react-router-dom';
 import { useProducts, useCategories } from '@/features/products/hooks';
 import { ProductCard } from '@/components/product/ProductCard';
 import { Pagination } from '@/components/common/Pagination';
+import { Seo } from '@/components/common/Seo';
 import { ProductQuery } from '@/types/product';
 
 export function ProductListPage() {
@@ -24,6 +25,10 @@ export function ProductListPage() {
 
   return (
     <div>
+      <Seo
+        title="Browse the menu"
+        description="Browse homemade pickles, sweets, and snacks made in real kitchens, in small batches. Filter by category and order fresh from Gara."
+      />
       <p className="text-sm font-semibold uppercase tracking-widest text-brand-300">Full menu</p>
       <h1 className="mb-6 mt-1 font-display text-3xl font-semibold text-paper-50">Browse products</h1>
 

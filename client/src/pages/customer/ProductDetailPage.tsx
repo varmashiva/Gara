@@ -6,6 +6,7 @@ import { useAuth } from '@/features/auth/AuthContext';
 import { formatPaise } from '@/utils/currency';
 import { VegBadge } from '@/components/common/VegBadge';
 import { ImagePlaceholder } from '@/components/common/ImagePlaceholder';
+import { Seo } from '@/components/common/Seo';
 
 export function ProductDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -49,6 +50,33 @@ export function ProductDetailPage() {
 
   return (
     <div className="grid gap-10 md:grid-cols-2">
+      <Seo
+        title={product.name}
+        description={product.description.slice(0, 155)}
+        image={selectedImage?.url}
+        jsonLd={{
+          '@context': 'https://schema.org',
+          '@type': 'Product',
+          name: product.name,
+          description: product.description,
+          image: images.map((img) => img.url),
+          category: product.categorySnapshot.name,
+          offers: {
+            '@type': 'Offer',
+            priceCurrency: 'INR',
+            price: (product.price / 100).toFixed(2),
+            availability: outOfStock ? 'https://schema.org/OutOfStock' : 'https://schema.org/InStock',
+            url: `https://garafoods.com/products/${product._id}`,
+          },
+          ...(product.ratingCount > 0 && {
+            aggregateRating: {
+              '@type': 'AggregateRating',
+              ratingValue: product.ratingAvg,
+              reviewCount: product.ratingCount,
+            },
+          }),
+        }}
+      />
       <div>
         <div className="aspect-[4/3] overflow-hidden rounded-xl2 bg-surface-200">
           {selectedImage ? (

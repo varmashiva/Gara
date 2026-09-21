@@ -3,39 +3,13 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Gara, Homemade Food Marketplace</title>
-    <meta
-      name="description"
-      content="Gara brings you homemade pickles, sweets, and snacks made in real kitchens, in small batches, delivered fresh to your door."
-    />
-    <meta name="robots" content="index, follow" />
-    <link rel="canonical" href="https://garafoods.com/" />
-
-    <!-- Open Graph / Facebook, WhatsApp, etc. -->
-    <meta property="og:type" content="website" />
-    <meta property="og:site_name" content="Gara" />
-    <meta property="og:url" content="https://garafoods.com/" />
-    <meta property="og:title" content="Gara, Homemade Food Marketplace" />
-    <meta
-      property="og:description"
-      content="Homemade pickles, sweets, and snacks made in real kitchens, in small batches, delivered fresh to your door."
-    />
-    <meta
-      property="og:image"
-      content="https://images.pexels.com/photos/19151506/pexels-photo-19151506.jpeg?auto=compress&cs=tinysrgb&w=1200&h=630&fit=crop"
-    />
-
-    <!-- Twitter Card -->
-    <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:title" content="Gara, Homemade Food Marketplace" />
-    <meta
-      name="twitter:description"
-      content="Homemade pickles, sweets, and snacks made in real kitchens, in small batches, delivered fresh to your door."
-    />
-    <meta
-      name="twitter:image"
-      content="https://images.pexels.com/photos/19151506/pexels-photo-19151506.jpeg?auto=compress&cs=tinysrgb&w=1200&h=630&fit=crop"
-    />
+    <!-- Bare fallback for the instant before React/Helmet mounts (and for
+         prerendering's fail-safe skip path) — description, OG/Twitter,
+         canonical, and robots are all owned by the <Seo> component (see
+         App.tsx's site-wide default plus each page's own override) rather
+         than duplicated here, since Helmet can only ever replace tags it
+         rendered itself, never ones already sitting in the static HTML. -->
+    <title>Gara</title>
 
     <link rel="icon" type="image/png" sizes="32x32" href="/logo/favicon-32.png" />
     <link rel="icon" type="image/png" sizes="16x16" href="/logo/favicon-16.png" />

@@ -83,6 +83,8 @@ export function ProductDetailPage() {
             <img
               src={selectedImage.url}
               alt={selectedImage.alt ?? product.name}
+              loading="eager"
+              fetchPriority="high"
               className="h-full w-full object-cover"
             />
           ) : (

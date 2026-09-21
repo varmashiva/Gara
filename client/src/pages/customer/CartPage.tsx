@@ -81,7 +81,13 @@ export function CartPage() {
             <li key={item.itemId} className="flex flex-col gap-3 p-4 sm:flex-row sm:items-center sm:gap-4">
               <div className="flex flex-1 items-center gap-4">
                 {item.image ? (
-                  <img src={item.image} alt={item.name} className="h-16 w-16 shrink-0 rounded-lg object-cover" />
+                  <img
+                    src={item.image}
+                    alt={item.name}
+                    loading="lazy"
+                    decoding="async"
+                    className="h-16 w-16 shrink-0 rounded-lg object-cover"
+                  />
                 ) : (
                   <ImagePlaceholder className="h-16 w-16 shrink-0 rounded-lg" />
                 )}

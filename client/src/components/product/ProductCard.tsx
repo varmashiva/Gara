@@ -17,6 +17,8 @@ export function ProductCard({ product }: { product: Product }) {
           <img
             src={product.images[0].url}
             alt={product.images[0].alt ?? product.name}
+            loading="lazy"
+            decoding="async"
             className="h-full w-full object-cover transition group-hover:scale-105"
           />
         ) : (

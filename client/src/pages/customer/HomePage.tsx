@@ -93,6 +93,8 @@ export function HomePage() {
           <img
             src={hero?.image?.url ?? DEFAULT_HERO_IMAGE}
             alt={hero?.headline ?? 'A box of fresh motichoor laddu, one of the sweets made on Gara'}
+            loading="eager"
+            fetchPriority="high"
             className="h-full w-full object-cover"
           />
         </div>
@@ -169,6 +171,8 @@ export function HomePage() {
           <img
             src="https://images.pexels.com/photos/37330104/pexels-photo-37330104.jpeg?auto=compress&cs=tinysrgb&w=1200"
             alt="Hands preparing fresh ingredients on a cutting board in a home kitchen"
+            loading="lazy"
+            decoding="async"
             className="h-full w-full object-cover"
           />
           <div className="absolute inset-0 bg-gradient-to-t from-surface-950/85 via-surface-950/15 to-transparent" />

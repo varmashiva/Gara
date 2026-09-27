@@ -17,6 +17,7 @@ import { AdminOrderDetailPage } from '@/pages/admin/AdminOrderDetailPage';
 import { AdminReturnsPage } from '@/pages/admin/AdminReturnsPage';
 import { AdminCouponsPage } from '@/pages/admin/AdminCouponsPage';
 import { AdminSettlementsPage } from '@/pages/admin/AdminSettlementsPage';
+import { AdminPickupLocationsPage } from '@/pages/admin/AdminPickupLocationsPage';
 import { ProtectedRoute } from './ProtectedRoute';
 import { AdminRoute } from './AdminRoute';
 import { AdminLayout } from '@/layouts/AdminLayout';
@@ -50,6 +51,7 @@ export function AppRoutes() {
           <Route path="returns" element={<AdminReturnsPage />} />
           <Route path="coupons" element={<AdminCouponsPage />} />
           <Route path="settlements" element={<AdminSettlementsPage />} />
+          <Route path="pickup-locations" element={<AdminPickupLocationsPage />} />
         </Route>
       </Route>
     </Routes>

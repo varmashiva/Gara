@@ -36,6 +36,7 @@ export interface CreateShipmentOrderParams {
   deliveryAddress: ShippingAddress;
   items: ShipmentLineItem[];
   subtotal: number; // rupees
+  customerEmail?: string;
   paymentMethod: 'PREPAID' | 'COD';
   weightKg: number;
 }
@@ -43,6 +44,10 @@ export interface CreateShipmentOrderParams {
 export interface CreateShipmentOrderResult {
   externalOrderId: string;
   externalShipmentId: string;
+}
+
+export interface RegisterPickupLocationResult {
+  externalPickupLocationId: string;
 }
 
 export interface AssignCourierResult {
@@ -72,10 +77,11 @@ export interface TrackShipmentResult {
  * other courier aggregator) directly — see design doc §L/§14.
  */
 export interface ShippingProvider {
+  registerPickupLocation(info: PickupLocationInfo & { email: string }): Promise<RegisterPickupLocationResult>;
   createShipmentOrder(params: CreateShipmentOrderParams): Promise<CreateShipmentOrderResult>;
   assignCourier(externalShipmentId: string): Promise<AssignCourierResult>;
   requestPickup(externalShipmentId: string): Promise<RequestPickupResult>;
   trackShipment(awbCode: string): Promise<TrackShipmentResult>;
   cancelShipment(externalOrderId: string): Promise<{ cancelled: boolean }>;
-  verifyWebhookSignature(rawBody: string, signatureHeader: string | undefined): boolean;
+  verifyWebhookToken(tokenHeader: string | undefined): boolean;
 }

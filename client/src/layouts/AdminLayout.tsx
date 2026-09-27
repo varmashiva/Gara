@@ -27,6 +27,9 @@ export function AdminLayout() {
           <Link to="/admin/settlements" className="text-paper-300 hover:text-brand-300">
             Settlements
           </Link>
+          <Link to="/admin/pickup-locations" className="text-paper-300 hover:text-brand-300">
+            Pickup locations
+          </Link>
           <Link to="/" className="text-brand-300 underline">
             Back to marketplace
           </Link>

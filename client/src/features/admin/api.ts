@@ -174,3 +174,50 @@ export async function fetchAdminOrder(id: string) {
   }>(`/admin/orders/${id}`);
   return res.data.data;
 }
+
+export type PickupLocation = {
+  _id: string;
+  label: string;
+  contactPerson: string;
+  phone: string;
+  addressLine1: string;
+  addressLine2?: string;
+  city: string;
+  state: string;
+  postalCode: string;
+  country: string;
+  status: 'PENDING' | 'ACTIVE' | 'DISABLED';
+  isDefault: boolean;
+};
+
+export type NewPickupLocation = Omit<PickupLocation, '_id' | 'status'>;
+
+export async function fetchPickupLocations() {
+  const res = await api.get<{ success: true; data: PickupLocation[] }>('/admin/pickup-locations');
+  return res.data.data;
+}
+
+export async function createPickupLocation(payload: NewPickupLocation) {
+  const res = await api.post<{ success: true; data: PickupLocation }>('/admin/pickup-locations', payload);
+  return res.data.data;
+}
+
+export async function setDefaultPickupLocation(id: string) {
+  const res = await api.patch<{ success: true; data: PickupLocation }>(`/admin/pickup-locations/${id}`, { isDefault: true });
+  return res.data.data;
+}
+
+export async function deletePickupLocation(id: string) {
+  await api.delete(`/admin/pickup-locations/${id}`);
+}
+
+export async function updateFulfillmentStatus(id: string, status: string) {
+  const res = await api.patch(`/admin/fulfillments/${id}/status`, { status });
+  return res.data.data;
+}
+
+// Mock shipping mode only — stands in for Shiprocket's tracking webhook.
+export async function simulateShipmentStatus(externalShipmentId: string, status: 'picked_up' | 'delivered' | 'failed') {
+  const res = await api.post(`/shipments/mock/${externalShipmentId}/complete`, { status });
+  return res.data.data;
+}

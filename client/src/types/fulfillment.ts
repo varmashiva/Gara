@@ -21,6 +21,9 @@ export type Shipment = {
   externalShipmentId: string;
   awbCode?: string;
   courierName?: string;
+  trackingUrl?: string;
+  provider?: string;
+  pickupScheduledAt?: string;
   status: 'CREATED' | 'AWB_ASSIGNED' | 'PICKUP_SCHEDULED' | 'IN_TRANSIT' | 'DELIVERED' | 'FAILED';
 };
 

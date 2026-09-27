@@ -32,8 +32,8 @@ const sellerPickupLocationSchema = new Schema<SellerPickupLocationDocument>(
     state: { type: String, required: true },
     postalCode: { type: String, required: true },
     country: { type: String, required: true },
-    // TODO / VERIFY WITH CURRENT SHIPROCKET API — exact field returned when
-    // registering a pickup location; populated once ShiprocketProvider is implemented.
+    // The unique nickname this address was registered under in Shiprocket
+    // (`pickup_location`) — what order creation refers to it by.
     shiprocketPickupLocationId: { type: String },
     status: { type: String, enum: ['PENDING', 'ACTIVE', 'DISABLED'], default: 'PENDING' },
     isDefault: { type: Boolean, default: false },

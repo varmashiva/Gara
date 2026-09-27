@@ -166,3 +166,23 @@ export function useAdminOrder(id: string | undefined) {
     enabled: !!id,
   });
 }
+
+export function useUpdateFulfillmentStatus(orderId: string | undefined) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, status }: { id: string; status: string }) => api.updateFulfillmentStatus(id, status),
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin', 'order', orderId] });
+      queryClient.invalidateQueries({ queryKey: ['admin', 'orders'] });
+    },
+  });
+}
+
+export function useSimulateShipmentStatus(orderId: string | undefined) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ externalShipmentId, status }: { externalShipmentId: string; status: 'picked_up' | 'delivered' | 'failed' }) =>
+      api.simulateShipmentStatus(externalShipmentId, status),
+    onSettled: () => queryClient.invalidateQueries({ queryKey: ['admin', 'order', orderId] }),
+  });
+}

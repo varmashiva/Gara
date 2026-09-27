@@ -1,14 +1,17 @@
 import { z } from 'zod';
 
-export const shipmentWebhookSchema = z
+// Shiprocket's tracking webhook body. Only the fields we act on are
+// validated; the rest (etd, scans, courier_name...) passes through and is
+// stored on the ShipmentEvent as-is.
+export const shiprocketWebhookSchema = z
   .object({
-    eventId: z.string().min(1),
-    externalShipmentId: z.string().min(1),
-    status: z.enum(['picked_up', 'in_transit', 'delivered', 'failed']),
-    description: z.string().optional(),
-    signature: z.string().min(1),
+    awb: z.union([z.string().min(1), z.number()]),
+    current_status: z.string().min(1),
+    current_status_id: z.union([z.string(), z.number()]).optional(),
+    current_timestamp: z.string().optional(),
+    scans: z.array(z.object({ activity: z.string().optional() }).passthrough()).optional(),
   })
-  .strict();
+  .passthrough();
 
 export const mockShipmentCompleteSchema = z
   .object({
@@ -16,4 +19,4 @@ export const mockShipmentCompleteSchema = z
   })
   .strict();
 
-export type ShipmentWebhookInput = z.infer<typeof shipmentWebhookSchema>;
+export type ShiprocketWebhookInput = z.infer<typeof shiprocketWebhookSchema>;

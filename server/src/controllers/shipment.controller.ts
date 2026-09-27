@@ -3,7 +3,7 @@ import * as shippingService from '../services/shipping.service';
 import { sendSuccess } from '../utils/response';
 
 export async function webhookHandler(req: Request, res: Response) {
-  const result = await shippingService.handleShipmentWebhook(req.body);
+  const result = await shippingService.handleShiprocketWebhook(req.body, req.get('x-api-key'));
   return sendSuccess(res, result);
 }
 

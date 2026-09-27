@@ -1,5 +1,6 @@
 import { api } from '@/api/axios';
 import { Address, Order } from '@/types/order';
+import type { Shipment } from '@/types/fulfillment';
 
 export async function fetchAddresses() {
   const res = await api.get<{ success: true; data: Address[] }>('/addresses');
@@ -36,6 +37,7 @@ export type OrderTrackingFulfillment = {
   sellerId: string;
   status: string;
   items: { productName: string; quantity: number }[];
+  shipmentId?: Shipment | null;
 };
 
 export async function fetchOrderTracking(id: string) {

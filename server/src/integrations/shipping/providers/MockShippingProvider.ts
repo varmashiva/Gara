@@ -6,6 +6,8 @@ import {
   AssignCourierResult,
   RequestPickupResult,
   TrackShipmentResult,
+  PickupLocationInfo,
+  RegisterPickupLocationResult,
 } from '../ShippingProvider';
 
 /**
@@ -14,6 +16,10 @@ import {
  * flow can be exercised end to end without credentials.
  */
 export class MockShippingProvider implements ShippingProvider {
+  async registerPickupLocation(info: PickupLocationInfo): Promise<RegisterPickupLocationResult> {
+    return { externalPickupLocationId: `mock-${info.label}` };
+  }
+
   async createShipmentOrder(params: CreateShipmentOrderParams): Promise<CreateShipmentOrderResult> {
     return {
       externalOrderId: `mock_sr_order_${params.orderNumber}`,
@@ -40,7 +46,7 @@ export class MockShippingProvider implements ShippingProvider {
     return { cancelled: true };
   }
 
-  verifyWebhookSignature(_rawBody: string, signatureHeader: string | undefined): boolean {
-    return signatureHeader === 'mock-shipping-signature';
+  verifyWebhookToken(tokenHeader: string | undefined): boolean {
+    return tokenHeader === 'mock-shipping-signature';
   }
 }

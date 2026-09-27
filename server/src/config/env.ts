@@ -76,3 +76,13 @@ if (
   console.error('Refusing to start in production with default dev JWT secrets.');
   process.exit(1);
 }
+
+if (
+  env.SHIPPING_PROVIDER_MODE === 'real' &&
+  (!env.SHIPROCKET_EMAIL || !env.SHIPROCKET_PASSWORD || !env.SHIPROCKET_WEBHOOK_SECRET)
+) {
+  console.error(
+    'SHIPPING_PROVIDER_MODE=real needs SHIPROCKET_EMAIL, SHIPROCKET_PASSWORD and SHIPROCKET_WEBHOOK_SECRET.'
+  );
+  process.exit(1);
+}

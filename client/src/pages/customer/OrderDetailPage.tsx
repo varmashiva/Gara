@@ -245,6 +245,19 @@ export function OrderDetailPage() {
                 <p className="text-paper-600">
                   {f.items.map((item) => `${item.productName} × ${item.quantity}`).join(', ')}
                 </p>
+                {f.shipmentId?.awbCode && (
+                  <p className="mt-2 text-paper-400">
+                    {f.shipmentId.courierName} · AWB <span className="font-mono">{f.shipmentId.awbCode}</span>
+                    {f.shipmentId.trackingUrl && (
+                      <>
+                        {' · '}
+                        <a href={f.shipmentId.trackingUrl} target="_blank" rel="noreferrer" className="text-brand-300 underline">
+                          Track package
+                        </a>
+                      </>
+                    )}
+                  </p>
+                )}
               </li>
             ))}
           </ul>

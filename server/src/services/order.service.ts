@@ -351,9 +351,9 @@ export async function recomputeOrderStatus(orderId: string) {
 
 export async function getOrderTracking(userId: string, orderId: string) {
   const order = await getMyOrder(userId, orderId);
-  const fulfillments = await SellerFulfillment.find({ orderId: order._id }).select(
-    'sellerId status items statusHistory'
-  );
+  const fulfillments = await SellerFulfillment.find({ orderId: order._id })
+    .select('sellerId status items statusHistory shipmentId')
+    .populate('shipmentId', 'awbCode courierName trackingUrl status');
   return { order, fulfillments };
 }
 
@@ -371,7 +371,7 @@ export async function getOrderForAdmin(orderId: string) {
   if (!order) {
     throw AppError.notFound('Order not found', 'ORDER_NOT_FOUND');
   }
-  const fulfillments = await SellerFulfillment.find({ orderId: order._id });
+  const fulfillments = await SellerFulfillment.find({ orderId: order._id }).populate('shipmentId');
   return { order, fulfillments };
 }
 
